@@ -55,13 +55,13 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
-    <!-- OAuth2 Client (Google auth code exchange) -->
+    <!-- OAuth2 Client -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-client</artifactId>
     </dependency>
 
-    <!-- Resource Server (JWT verification on incoming requests) -->
+    <!-- Resource Server -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
