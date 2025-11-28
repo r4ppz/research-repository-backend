@@ -1,0 +1,68 @@
+# -----------------------------------------------------------------------------
+# Spring Boot / Java / Build System
+
+### Build Artifacts ###
+target/
+build/
+out/
+
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+### Maven Wrapper ###
+.mvn/wrapper/maven-wrapper.jar
+
+### Gradle Wrapper and Cache ###
+.gradle
+.gradletasknamecache
+
+# -----------------------------------------------------------------------------
+# IDE and OS Exclusions
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse/STS ###
+.classpath
+.project
+.settings/
+.apt_generated/
+.factorypath
+.springBeans
+.sts4-cache/
+
+### VS Code ###
+.vscode/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### OS Files ###
+.DS_Store
+Thumbs.db
+
+# -----------------------------------------------------------------------------
+# File Storage & Security
+
+# User-Uploaded Files
+/uploads/
+/data/
+
+# Secrets/Configuration Files
+/src/main/resources/application.properties
+/src/main/resources/application.yml
+.env
+
+# Runtime and Logging
+*.log
+logs/
