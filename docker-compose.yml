@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: research-repo-db
+      POSTGRES_USER: testing
+      POSTGRES_PASSWORD: testing
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    image: research-repo-backend
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/research-repo-db
+      SPRING_DATASOURCE_USERNAME: testing
+      SPRING_DATASOURCE_PASSWORD: testing
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
