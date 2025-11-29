@@ -1,9 +1,16 @@
 spring:
-  application:
-    name: research-repository
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/repo_db
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+server:
+  port: 8080
