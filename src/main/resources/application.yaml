@@ -18,3 +18,26 @@ spring:
 
 server:
   port: 8080
+
+# Custom application configuration
+app:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+    redirect-uri: ${GOOGLE_REDIRECT_URI}
+
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry: ${JWT_ACCESS_TOKEN_EXPIRY:3600}
+
+  refresh-token:
+    cookie-name: ${REFRESH_TOKEN_COOKIE_NAME:refreshToken}
+    max-age: ${REFRESH_TOKEN_MAX_AGE:2592000}
+
+  environment: ${APP_ENVIRONMENT:development}
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
