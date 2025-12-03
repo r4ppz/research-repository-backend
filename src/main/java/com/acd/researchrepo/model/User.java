@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import lombok.Builder;
 import lombok.Data;
 
 import jakarta.persistence.CascadeType;
@@ -34,6 +35,7 @@ import jakarta.validation.constraints.Size;
 @Table(name = "users", indexes = @Index(name = "idx_users_department", columnList = "department_id"))
 @Data
 @EntityListeners(AuditingEntityListener.class)
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
