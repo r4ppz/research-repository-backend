@@ -12,7 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class GoogleUserInfo {
-
     private String email;
     private String name;
     private String googleId;

@@ -28,10 +28,6 @@ public class JwtService {
     @Value("${app.jwt.access-token-expiry:3600}")
     private int accessTokenExpirySeconds;
 
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
-    }
-
     /**
      * Generate JWT access token for user
      * Contains user info needed for authorization
@@ -95,5 +91,9 @@ public class JwtService {
         } catch (Exception e) {
             return true;
         }
+    }
+
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 }
