@@ -59,8 +59,6 @@ Thumbs.db
 /data/
 
 # Secrets/Configuration Files
-/src/main/resources/application.properties
-/src/main/resources/application.yml
 .env
 
 # Runtime and Logging
