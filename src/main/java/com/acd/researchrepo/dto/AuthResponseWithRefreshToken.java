@@ -6,6 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Internal service return type. NOT part of the public API.
+ * Contains the access token (for JSON response) and the refresh token
+ * (so controller can set it as HttpOnly cookie).
+ */
+
 @Getter
 @Setter
 @NoArgsConstructor
