@@ -1,8 +1,6 @@
 package com.acd.researchrepo.mapper;
 
-import com.acd.researchrepo.dto.external.DepartmentDto;
 import com.acd.researchrepo.dto.external.UserDto;
-import com.acd.researchrepo.model.Department;
 import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.model.enums.UserRole;
 
@@ -10,6 +8,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
+
+    DepartmentMapper departmentMapper;
+
+    public UserMapper(DepartmentMapper departmentMapper) {
+        this.departmentMapper = departmentMapper;
+    }
 
     public UserDto toDto(User user) {
         if (user == null) {
@@ -24,7 +28,7 @@ public class UserMapper {
                     .email(user.getEmail())
                     .fullName(user.getFullName())
                     .role(user.getRole())
-                    .department(toDepartmentDto(user.getDepartment()))
+                    .department(departmentMapper.toDto(user.getDepartment()))
                     .build();
         } else {
             return UserDto.builder()
@@ -36,17 +40,5 @@ public class UserMapper {
                     .build();
 
         }
-    }
-
-    // NOTE: maybe add this to its on file
-    private DepartmentDto toDepartmentDto(Department department) {
-        if (department == null) {
-            return null;
-        }
-
-        return DepartmentDto.builder()
-                .departmentId(department.getDepartmentId())
-                .departmentName(department.getDepartmentName())
-                .build();
     }
 }
