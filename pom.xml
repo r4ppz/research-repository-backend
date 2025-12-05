@@ -13,9 +13,9 @@
 
   <groupId>com.acd</groupId>
   <artifactId>research-repository</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>research-repository</name>
-  <description>Research Repository Backend.</description>
+  <description>Research Repository Backend</description>
 
   <developers>
     <developer>
@@ -26,7 +26,6 @@
 
   <properties>
     <java.version>21</java.version>
-    <testcontainers.version>1.20.2</testcontainers.version>
   </properties>
 
   <dependencies>
