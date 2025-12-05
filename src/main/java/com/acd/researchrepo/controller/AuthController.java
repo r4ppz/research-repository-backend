@@ -1,8 +1,8 @@
 package com.acd.researchrepo.controller;
 
-import com.acd.researchrepo.dto.AuthResponse;
-import com.acd.researchrepo.dto.AuthResponseWithRefreshToken;
-import com.acd.researchrepo.dto.GoogleAuthRequest;
+import com.acd.researchrepo.dto.external.AuthResponse;
+import com.acd.researchrepo.dto.external.GoogleAuthRequest;
+import com.acd.researchrepo.dto.internal.AuthResponseWithRefreshToken;
 import com.acd.researchrepo.service.AuthService;
 
 import org.springframework.beans.factory.annotation.Value;

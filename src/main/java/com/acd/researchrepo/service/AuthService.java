@@ -4,8 +4,9 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.acd.researchrepo.dto.AuthResponse;
-import com.acd.researchrepo.dto.AuthResponseWithRefreshToken;
+import com.acd.researchrepo.dto.external.AuthResponse;
+import com.acd.researchrepo.dto.internal.AuthResponseWithRefreshToken;
+import com.acd.researchrepo.dto.internal.GoogleUserInfo;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.RefreshToken;
 import com.acd.researchrepo.model.User;

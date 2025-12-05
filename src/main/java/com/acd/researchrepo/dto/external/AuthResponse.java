@@ -1,4 +1,4 @@
-package com.acd.researchrepo.service;
+package com.acd.researchrepo.dto.external;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,9 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GoogleUserInfo {
-
-    private String email;
-    private String name;
-    private String googleId;
+public class AuthResponse {
+    private String accessToken;
+    private UserDto user;
 }
