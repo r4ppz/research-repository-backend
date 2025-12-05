@@ -54,7 +54,7 @@ public class User {
     private String fullName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false, length = 50)
     @NotNull
     @Default
     private UserRole role = UserRole.STUDENT;
