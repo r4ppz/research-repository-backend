@@ -13,11 +13,15 @@ import com.acd.researchrepo.model.enums.UserRole;
 import com.acd.researchrepo.repository.RefreshTokenRepository;
 import com.acd.researchrepo.repository.UserRepository;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+
+    @Value("${app.refresh-token.max-age:2592000}")
+    private int refreshTokenMaxAge;
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -66,6 +70,7 @@ public class AuthService {
         User user = findOrCreateUser(googleUserInfo);
         String accessToken = jwtService.generateAccessToken(user);
         RefreshToken refreshToken = createRefreshToken(user);
+
         return AuthResponseWithRefreshToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.getToken())
@@ -97,8 +102,11 @@ public class AuthService {
 
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
+
+        // NOTE: This is not ideal for prob, I think.
         refreshToken.setToken(UUID.randomUUID().toString());
-        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(30));
+
+        refreshToken.setExpiresAt(LocalDateTime.now().plusSeconds(refreshTokenMaxAge));
 
         return refreshTokenRepository.save(refreshToken);
     }

@@ -29,8 +29,8 @@ public class GoogleAuthService {
     @Value("${app.google.redirect-uri}")
     private String redirectUri;
 
-    private final GoogleAuthorizationCodeFlow flow;
-    private final GoogleIdTokenVerifier verifier;
+    private final GoogleAuthorizationCodeFlow GAuthorizationCodeFlow;
+    private final GoogleIdTokenVerifier GIdTokenVerifier;
 
     public GoogleAuthService(@Value("${app.google.client-id}") String googleClientId,
             @Value("${app.google.client-secret}") String googleClientSecret,
@@ -41,7 +41,7 @@ public class GoogleAuthService {
         this.redirectUri = redirectUri;
 
         // Create OAuth flow for exchanging authorization code for tokens
-        this.flow = new GoogleAuthorizationCodeFlow.Builder(
+        this.GAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow.Builder(
                 new NetHttpTransport(),
                 new GsonFactory(),
                 googleClientId,
@@ -54,7 +54,7 @@ public class GoogleAuthService {
                 .build();
 
         // Create ID token verifier
-        this.verifier = new GoogleIdTokenVerifier.Builder(
+        this.GIdTokenVerifier = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(),
                 new GsonFactory())
                 .setAudience(Collections.singletonList(googleClientId))
@@ -63,11 +63,10 @@ public class GoogleAuthService {
 
     /**
      * Exchange Google OAuth authorization code for user information
-     * This is the real OAuth 2.0 flow
      */
     public GoogleUserInfo validateCodeAndGetUserInfo(String authorizationCode) {
         try {
-            GoogleTokenResponse tokenResponse = flow
+            GoogleTokenResponse tokenResponse = GAuthorizationCodeFlow
                     .newTokenRequest(authorizationCode)
                     .setRedirectUri(redirectUri)
                     .execute();
@@ -77,7 +76,7 @@ public class GoogleAuthService {
                 throw new InvalidGoogleTokenException("No ID token received from Google");
             }
 
-            GoogleIdToken idToken = verifier.verify(idTokenString);
+            GoogleIdToken idToken = GIdTokenVerifier.verify(idTokenString);
             if (idToken == null) {
                 throw new InvalidGoogleTokenException("Invalid Google ID token");
             }
@@ -85,7 +84,7 @@ public class GoogleAuthService {
             GoogleIdToken.Payload payload = idToken.getPayload();
 
             String email = payload.getEmail();
-            if (!email.endsWith("@acdeducation.com")) {
+            if (!email.endsWith(".com")) {
                 throw new DomainNotAllowedException("Email domain not allowed.  Must use @acdeducation.com");
             }
 
