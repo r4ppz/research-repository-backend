@@ -43,12 +43,7 @@ public class DocumentRequest {
     private LocalDateTime requestDate = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 50)
     @NotNull
     private RequestStatus status = RequestStatus.PENDING;
-
-    // Note: The partial unique index for preventing duplicate PENDING/ACCEPTED
-    // requests
-    // isn't directly enforceable in JPA; handle via custom repository logic or DB
-    // triggers.
 }
