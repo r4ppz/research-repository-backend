@@ -1,6 +1,7 @@
 package com.acd.researchrepo.controller;
 
 import com.acd.researchrepo.dto.AuthResponse;
+import com.acd.researchrepo.dto.AuthResponseWithRefreshToken;
 import com.acd.researchrepo.dto.GoogleAuthRequest;
 import com.acd.researchrepo.service.AuthService;
 
@@ -21,7 +22,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Value("${app.refresh-token. cookie-name:refreshToken}")
+    @Value("${app.refresh-token.cookie-name:refreshToken}")
     private String refreshTokenCookieName;
 
     @Value("${app.refresh-token.max-age:2592000}")
@@ -34,21 +35,15 @@ public class AuthController {
         this.authService = authService;
     }
 
-    /**
-     * POST /api/auth/google
-     * Authenticate user with Google OAuth authorization code
-     *
-     * Request body: { "code": "authorization_code_from_google" }
-     * Response: { "accessToken": "jwt_token", "user": {... } }
-     * Sets refresh token as HttpOnly cookie
-     */
+    // TODO: read the code and test if working
+
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> authenticateWithGoogle(
             @Valid @RequestBody GoogleAuthRequest request,
             HttpServletResponse response) {
 
         try {
-            var authResult = authService
+            AuthResponseWithRefreshToken authResult = authService
                     .authenticateWithGoogleAndGetRefreshToken(request.getCode());
             setRefreshTokenCookie(response, authResult.getRefreshToken());
             AuthResponse publicResponse = AuthResponse.builder()
@@ -63,10 +58,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * Helper method to set refresh token as HttpOnly cookie
-     * Cookie settings change based on environment (dev vs prod)
-     */
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         Cookie cookie = new Cookie(refreshTokenCookieName, refreshToken);
 
