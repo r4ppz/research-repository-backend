@@ -44,7 +44,7 @@ public class AuthController {
 
         try {
             AuthResponseWithRefreshToken authResult = authService
-                    .authenticateWithGoogleAndGetRefreshToken(request.getCode());
+                    .authenticateWithGoogle(request.getCode());
             setRefreshTokenCookie(response, authResult.getRefreshToken());
             AuthResponse publicResponse = AuthResponse.builder()
                     .accessToken(authResult.getAccessToken())

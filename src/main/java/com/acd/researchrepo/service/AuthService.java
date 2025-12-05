@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.acd.researchrepo.dto.external.AuthResponse;
 import com.acd.researchrepo.dto.internal.AuthResponseWithRefreshToken;
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
 import com.acd.researchrepo.mapper.UserMapper;
@@ -44,29 +43,11 @@ public class AuthService {
     }
 
     /**
-     * Authenticate user with Google OAuth code
-     * This is the main method that handles POST /api/auth/google
-     */
-    @Transactional
-    public AuthResponse authenticateWithGoogle(String googleAuthCode) {
-        GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
-        User user = findOrCreateUser(googleUserInfo);
-        String accessToken = jwtService.generateAccessToken(user);
-
-        // INFO: refresh token will be set as cookie by controller
-
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .user(userMapper.toDto(user))
-                .build();
-    }
-
-    /**
      * Get the refresh token string from the AuthResponse for cookie setting
      * We need this in the controller to set the HttpOnly cookie
      */
     @Transactional
-    public AuthResponseWithRefreshToken authenticateWithGoogleAndGetRefreshToken(String googleAuthCode) {
+    public AuthResponseWithRefreshToken authenticateWithGoogle(String googleAuthCode) {
         GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
         User user = findOrCreateUser(googleUserInfo);
         String accessToken = jwtService.generateAccessToken(user);
@@ -102,6 +83,7 @@ public class AuthService {
         refreshTokenRepository.deleteByUserId(user.getUserId());
 
         RefreshToken refreshToken = new RefreshToken();
+        // refreshToken.setCreatedAt(LocalDateTime.now());
         refreshToken.setUser(user);
 
         // NOTE: This is not ideal for prob, I think.
