@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 
 import jakarta.persistence.CascadeType;
@@ -55,6 +56,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     @NotNull
+    @Default
     private UserRole role = UserRole.STUDENT;
 
     @ManyToOne(fetch = FetchType.LAZY)
