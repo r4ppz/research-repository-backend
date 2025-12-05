@@ -1,7 +1,7 @@
 package com.acd.researchrepo.mapper;
 
-import com.acd.researchrepo.dto.DepartmentDto;
-import com.acd.researchrepo.dto.UserDto;
+import com.acd.researchrepo.dto.external.DepartmentDto;
+import com.acd.researchrepo.dto.external.UserDto;
 import com.acd.researchrepo.model.Department;
 import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.model.enums.UserRole;

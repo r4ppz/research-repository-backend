@@ -1,4 +1,6 @@
-package com.acd.researchrepo.dto;
+package com.acd.researchrepo.dto.internal;
+
+import com.acd.researchrepo.dto.external.UserDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuthResponse {
+public class AuthResponseWithRefreshToken {
     private String accessToken;
+    private String refreshToken;
     private UserDto user;
 }

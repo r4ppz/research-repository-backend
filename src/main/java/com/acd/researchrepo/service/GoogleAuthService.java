@@ -5,6 +5,7 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.acd.researchrepo.dto.internal.GoogleUserInfo;
 import com.acd.researchrepo.exception.DomainNotAllowedException;
 import com.acd.researchrepo.exception.InvalidGoogleTokenException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;

@@ -1,4 +1,4 @@
-package com.acd.researchrepo.dto;
+package com.acd.researchrepo.dto.external;
 
 import com.acd.researchrepo.model.enums.UserRole;
 
