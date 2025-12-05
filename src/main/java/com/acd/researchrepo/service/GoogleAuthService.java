@@ -30,6 +30,9 @@ public class GoogleAuthService {
     @Value("${app.google.redirect-uri}")
     private String redirectUri;
 
+    @Value("${app.environment}")
+    private String environment;
+
     private final GoogleAuthorizationCodeFlow GAuthorizationCodeFlow;
     private final GoogleIdTokenVerifier GIdTokenVerifier;
 
@@ -83,14 +86,21 @@ public class GoogleAuthService {
             }
 
             GoogleIdToken.Payload payload = idToken.getPayload();
-
             String email = payload.getEmail();
-            if (!email.endsWith(".com")) {
-                throw new DomainNotAllowedException("Email domain not allowed.  Must use @acdeducation.com");
-            }
 
             if (!payload.getEmailVerified()) {
                 throw new InvalidGoogleTokenException("Google email not verified");
+            }
+
+            // INFO: temp
+            if (environment.equalsIgnoreCase("development")) {
+                if (!email.endsWith(".com")) {
+                    throw new DomainNotAllowedException("Email not allowed.  Must use .com");
+                }
+            } else {
+                if (!email.endsWith("acdeducation.com")) {
+                    throw new DomainNotAllowedException("Email domain not allowed.  Must use @acdeducation.com");
+                }
             }
 
             return GoogleUserInfo.builder()
@@ -105,5 +115,4 @@ public class GoogleAuthService {
             throw new InvalidGoogleTokenException("Failed to verify Google token", e);
         }
     }
-
 }
