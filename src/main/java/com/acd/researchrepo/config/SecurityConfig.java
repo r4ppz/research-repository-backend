@@ -23,44 +23,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // Enable CORS and use our CorsConfigurationSource bean
-                .cors(Customizer.withDefaults())
-                // For APIs using JWT + cookie-based refresh, we typically disable session CSRF
-                // for REST endpoints.
-                // If you later have cookie-authenticated endpoints susceptible to CSRF, revisit
-                // this.
-                .csrf(csrf -> csrf.disable())
-                // Stateless session management - we use JWTs instead of HTTP session
+        http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // Public auth endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-                        // Allow OpenAPI/Swagger in dev
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        // All other endpoints require authentication
                         .anyRequest().authenticated());
 
         return http.build();
     }
 
-    /**
-     * CORS configuration source - Spring Security will use this for the cors()
-     * configuration.
-     * IMPORTANT: set allowCredentials(true) and do NOT use "*" origin when
-     * credentials are allowed.
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(allowedOrigins); // exact origins from app config / env
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "X-Requested-With"));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Apply to all endpoints; adjust path if you want more granular control.
         source.registerCorsConfiguration("/**", config);
         return source;
     }
