@@ -73,8 +73,11 @@ public class AuthService {
         }
 
         User user = oldToken.getUser();
-        RefreshToken newToken = createRefreshToken(user);
+        // Mark the old token as used/invalidate it to prevent reuse
         refreshTokenRepository.delete(oldToken);
+
+        // Create a new refresh token for future use
+        RefreshToken newToken = createRefreshToken(user);
         String newAccessToken = jwtService.generateAccessToken(user);
         return new RefreshResult(newAccessToken, newToken.getToken());
     }
@@ -83,7 +86,7 @@ public class AuthService {
         Optional<User> existingUser = userRepository.findByEmail(googleUserInfo.getEmail());
 
         if (existingUser.isPresent()) {
-            log.info("Existing user already exist. Used that instead :)");
+            log.info("User already exist!");
             return existingUser.get();
         }
 
@@ -95,7 +98,7 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(newUser);
-        log.info("New user has been created yay!");
+        log.info("New user has been created :)");
 
         return savedUser;
     }
