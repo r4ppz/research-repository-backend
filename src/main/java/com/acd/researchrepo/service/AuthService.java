@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.acd.researchrepo.dto.internal.AuthResponseWithRefreshToken;
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
+import com.acd.researchrepo.dto.internal.RefreshResult;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.RefreshToken;
 import com.acd.researchrepo.model.User;
@@ -42,10 +43,6 @@ public class AuthService {
         this.userMapper = userMapper;
     }
 
-    /**
-     * Get the refresh token string from the AuthResponse for cookie setting
-     * We need this in the controller to set the HttpOnly cookie
-     */
     @Transactional
     public AuthResponseWithRefreshToken authenticateWithGoogle(String googleAuthCode) {
         GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
@@ -58,6 +55,23 @@ public class AuthService {
                 .refreshToken(refreshToken.getToken())
                 .user(userMapper.toDto(user))
                 .build();
+    }
+
+    @Transactional
+    public RefreshResult refreshAccessToken(String refreshTokenValue) {
+        RefreshToken oldToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        if (oldToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            refreshTokenRepository.delete(oldToken);
+            throw new RuntimeException("Refresh token expired");
+        }
+
+        User user = oldToken.getUser();
+        RefreshToken newToken = createRefreshToken(user);
+        refreshTokenRepository.delete(oldToken);
+        String newAccessToken = jwtService.generateAccessToken(user);
+        return new RefreshResult(newAccessToken, newToken.getToken());
     }
 
     private User findOrCreateUser(GoogleUserInfo googleUserInfo) {
@@ -79,17 +93,20 @@ public class AuthService {
         return savedUser;
     }
 
+    public void revokeRefreshToken(String refreshTokenValue) {
+        refreshTokenRepository.findByToken(refreshTokenValue).ifPresent(t -> {
+            refreshTokenRepository.delete(t);
+        });
+    }
+
     private RefreshToken createRefreshToken(User user) {
-        refreshTokenRepository.deleteByUserId(user.getUserId());
+        refreshTokenRepository.deleteExpiredByUserId(user.getUserId(), LocalDateTime.now());
 
         RefreshToken refreshToken = new RefreshToken();
-        // refreshToken.setCreatedAt(LocalDateTime.now());
         refreshToken.setUser(user);
-
-        // NOTE: This is not ideal for prob, I think.
         refreshToken.setToken(UUID.randomUUID().toString());
-
         refreshToken.setExpiresAt(LocalDateTime.now().plusSeconds(refreshTokenMaxAge));
+        refreshToken.setCreatedAt(LocalDateTime.now());
 
         return refreshTokenRepository.save(refreshToken);
     }

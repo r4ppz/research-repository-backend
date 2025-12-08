@@ -1,8 +1,10 @@
 package com.acd.researchrepo.controller;
 
+import java.util.Map;
+
 import com.acd.researchrepo.dto.external.AuthResponse;
 import com.acd.researchrepo.dto.external.GoogleAuthRequest;
-import com.acd.researchrepo.dto.internal.AuthResponseWithRefreshToken;
+import com.acd.researchrepo.dto.external.RefreshResponse;
 import com.acd.researchrepo.service.AuthService;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,12 +14,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -35,18 +41,17 @@ public class AuthController {
         this.authService = authService;
     }
 
-    // TODO: read the code and test if working
-
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> authenticateWithGoogle(
             @Valid @RequestBody GoogleAuthRequest request,
             HttpServletResponse response) {
 
         try {
-            AuthResponseWithRefreshToken authResult = authService
+            var authResult = authService
                     .authenticateWithGoogle(request.getCode());
             setRefreshTokenCookie(response, authResult.getRefreshToken());
-            AuthResponse publicResponse = AuthResponse.builder()
+            var publicResponse = AuthResponse
+                    .builder()
                     .accessToken(authResult.getAccessToken())
                     .user(authResult.getUser())
                     .build();
@@ -58,21 +63,81 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> refreshAccessToken(HttpServletRequest request,
+            HttpServletResponse response) {
+
+        String refreshToken = extractRefreshTokenFromCookie(request);
+        if (refreshToken == null) {
+            return ResponseEntity.status(401).body(new RefreshResponse(null));
+        }
+
+        try {
+            var refreshResult = authService.refreshAccessToken(refreshToken);
+            setRefreshTokenCookie(response, refreshResult.getRefreshToken());
+            var refreshResponse = new RefreshResponse(refreshResult.getAccessToken());
+            return ResponseEntity.ok(refreshResponse);
+        } catch (RuntimeException e) {
+            clearRefreshTokenCookie(response);
+            return ResponseEntity.status(401).body(new RefreshResponse(null));
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = extractRefreshTokenFromCookie(request);
+        if (refreshToken != null) {
+            authService.revokeRefreshToken(refreshToken);
+        }
+        clearRefreshTokenCookie(response);
+        return ResponseEntity.ok().body(Map.of("message", "Logged out successfully"));
+    }
+
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         Cookie cookie = new Cookie(refreshTokenCookieName, refreshToken);
 
         cookie.setHttpOnly(true);
-        cookie.setPath("/api/auth/");
+        cookie.setPath("/");
         cookie.setMaxAge(refreshTokenMaxAge);
 
         if ("production".equalsIgnoreCase(environment)) {
             cookie.setSecure(true);
-            cookie.setAttribute("SameSite", "Strict");
+            cookie.setAttribute("SameSite", "None");
         } else {
             cookie.setSecure(false);
             cookie.setAttribute("SameSite", "Lax");
         }
 
+        response.addCookie(cookie);
+    }
+
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null)
+            return null;
+        for (Cookie cookie : request.getCookies()) {
+            if (refreshTokenCookieName.equals(cookie.getName())) {
+                System.out.println("Cookie: " + cookie.getName() + "=" + cookie.getValue());
+                return cookie.getValue();
+            }
+
+        }
+        System.out.println("No cookies sent with request");
+        return null;
+
+    }
+
+    private void clearRefreshTokenCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie(refreshTokenCookieName, "");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        if ("production".equalsIgnoreCase(environment)) {
+            cookie.setSecure(true);
+            cookie.setAttribute("SameSite", "None");
+        } else {
+            cookie.setSecure(false);
+            cookie.setAttribute("SameSite", "Lax");
+        }
         response.addCookie(cookie);
     }
 }
