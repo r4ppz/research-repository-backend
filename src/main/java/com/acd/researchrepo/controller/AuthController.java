@@ -63,24 +63,30 @@ public class AuthController {
     public ResponseEntity<AuthResponse> authenticateWithGoogle(
             @Valid @RequestBody GoogleAuthRequest request,
             HttpServletResponse response) {
-        log.info("Request code is recieved! (I think)");
+        log.info("api/auth/google endpoint hit!!!");
+
         var authResult = authService
                 .authenticateWithGoogle(request.getCode());
-        log.info("Auth service is success yay!");
+        log.info("Auth service success :)");
+
         setRefreshTokenCookie(response, authResult.getRefreshToken());
         log.info("Refresh token has been set!");
+
         var publicResponse = AuthResponse
                 .builder()
                 .accessToken(authResult.getAccessToken())
                 .user(authResult.getUser())
                 .build();
         log.info("Login success :)  returning the public response which is accessToken and user");
+
         return ResponseEntity.ok(publicResponse);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponse> refreshAccessToken(HttpServletRequest request,
             HttpServletResponse response) {
+        log.info("api/auth/refresh endpoint hit!!!");
+
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
             log.error("Refresh token is nall bruh");
@@ -99,6 +105,8 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        log.info("api/auth/logout endpoint hit!!!");
+
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken != null) {
             authService.revokeRefreshToken(refreshToken);
@@ -109,9 +117,11 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(HttpServletRequest request) {
+        log.info("api/auth/me endpoint hit!!!");
+
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            // TODO: maybe add custom exception here ?
+            // NOTE: maybe add custom exception here ?
             log.error("No auth header found!! WHAT!!!");
             return ResponseEntity.status(401).build();
         }
@@ -147,13 +157,13 @@ public class AuthController {
 
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
         if (request.getCookies() == null) {
-            // TODO: maybe add custom exeption here no?
+            // NOTE: maybe add custom exeption here no?
             log.error("Yea refresh token is null buddy");
             return null;
         }
         for (Cookie cookie : request.getCookies()) {
             if (refreshTokenCookieName.equals(cookie.getName())) {
-                log.info("Cookie: {} = {}", cookie.getValue(), cookie.getName());
+                log.info("Cookie: {} = {}", cookie.getName(), cookie.getValue());
                 return cookie.getValue();
             }
 
