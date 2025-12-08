@@ -93,7 +93,7 @@ public class GoogleAuthService {
             }
 
             // INFO: temp
-            if (environment.equalsIgnoreCase("development")) {
+            if ("development".equalsIgnoreCase(environment)) {
                 if (!email.endsWith(".com")) {
                     throw new DomainNotAllowedException("Email not allowed.  Must use .com");
                 }

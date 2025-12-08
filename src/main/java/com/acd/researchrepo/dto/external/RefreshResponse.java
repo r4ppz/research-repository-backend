@@ -5,13 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import jakarta.validation.constraints.NotNull;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GoogleAuthRequest {
-    @NotNull(message = "Auth code cannot be blank")
-    private String code;
+public class RefreshResponse {
+    private String accessToken;
 }

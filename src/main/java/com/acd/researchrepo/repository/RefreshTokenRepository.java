@@ -1,6 +1,7 @@
 package com.acd.researchrepo.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import com.acd.researchrepo.model.RefreshToken;
@@ -14,10 +15,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Inte
     Optional<RefreshToken> findByToken(String token);
 
     @Modifying
-    @Query("DELETE FROM RefreshToken rt WHERE rt. user.userId = :userId")
-    void deleteByUserId(@Param("userId") Integer userId);
+    @Query("DELETE FROM RefreshToken r WHERE r.user.userId = :userId AND r.expiresAt < :now")
+    void deleteExpiredByUserId(@Param("userId") Integer userId, @Param("now") LocalDateTime now);
 
-    @Modifying
-    @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")
-    void deleteExpiredTokens(@Param("now") LocalDateTime now);
+    @Query("SELECT r FROM RefreshToken r WHERE r.user.userId = :userId")
+    List<RefreshToken> findByUserId(@Param("userId") Integer userId);
 }
