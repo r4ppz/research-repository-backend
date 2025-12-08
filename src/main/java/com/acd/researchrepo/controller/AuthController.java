@@ -7,6 +7,8 @@ import com.acd.researchrepo.dto.external.auth.AuthResponse;
 import com.acd.researchrepo.dto.external.auth.GoogleAuthRequest;
 import com.acd.researchrepo.dto.external.auth.RefreshResponse;
 import com.acd.researchrepo.dto.external.auth.UserDto;
+import com.acd.researchrepo.dto.internal.AuthTokenContainer;
+import com.acd.researchrepo.dto.internal.RefreshResult;
 import com.acd.researchrepo.exception.InvalidTokenException;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.User;
@@ -60,32 +62,34 @@ public class AuthController {
     }
 
     @PostMapping("/google")
-    public ResponseEntity<AuthResponse> authenticateWithGoogle(
+    public ResponseEntity<AuthResponse> loginWithGoogle(
             @Valid @RequestBody GoogleAuthRequest request,
             HttpServletResponse response) {
-        log.info("api/auth/google endpoint hit!!!");
+        log.info("api/auth/google endpoint hit!!");
+        log.debug("Initiating Google authentication for user request.");
 
-        var authResult = authService
-                .authenticateWithGoogle(request.getCode());
-        log.info("Auth service success :)");
+        AuthTokenContainer authContiner = authService.authenticateWithGoogle(request.getCode());
+        log.info("Google authentication completed successfully.");
 
-        setRefreshTokenCookie(response, authResult.getRefreshToken());
-        log.info("Refresh token has been set!");
-
-        var publicResponse = AuthResponse
+        AuthResponse authResponse = AuthResponse
                 .builder()
-                .accessToken(authResult.getAccessToken())
-                .user(authResult.getUser())
+                .accessToken(authContiner.getAccessToken())
+                .user(authContiner.getUser())
                 .build();
-        log.info("Login success :)  returning the public response which is accessToken and user");
+        log.debug("AuthResponse built with user and access token details.");
 
-        return ResponseEntity.ok(publicResponse);
+        setRefreshTokenCookie(response, authContiner.getRefreshToken());
+        log.debug("Refresh token cookie set in response.");
+
+        log.info("Returning authentication response.");
+        return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> refreshAccessToken(HttpServletRequest request,
+    public ResponseEntity<RefreshResponse> refreshAccessToken(
+            HttpServletRequest request,
             HttpServletResponse response) {
-        log.info("api/auth/refresh endpoint hit!!!");
+        log.info("api/auth/refresh endpoint hit!!");
 
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
@@ -93,9 +97,9 @@ public class AuthController {
             return ResponseEntity.status(401).body(new RefreshResponse(null));
         }
         try {
-            var refreshResult = authService.refreshAccessToken(refreshToken);
+            RefreshResult refreshResult = authService.refreshAccessToken(refreshToken);
             setRefreshTokenCookie(response, refreshResult.getRefreshToken());
-            var refreshResponse = new RefreshResponse(refreshResult.getAccessToken());
+            RefreshResponse refreshResponse = new RefreshResponse(refreshResult.getAccessToken());
             return ResponseEntity.ok(refreshResponse);
         } catch (RuntimeException e) {
             clearRefreshTokenCookie(response);
@@ -104,8 +108,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        log.info("api/auth/logout endpoint hit!!!");
+    public ResponseEntity<?> logout(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        log.info("api/auth/logout endpoint hit!!");
 
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken != null) {
@@ -117,7 +123,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(HttpServletRequest request) {
-        log.info("api/auth/me endpoint hit!!!");
+        log.info("api/auth/me endpoint hit!!");
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -140,7 +146,9 @@ public class AuthController {
         }
     }
 
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+    private void setRefreshTokenCookie(
+            HttpServletResponse response,
+            String refreshToken) {
         Cookie cookie = new Cookie(refreshTokenCookieName, refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/");

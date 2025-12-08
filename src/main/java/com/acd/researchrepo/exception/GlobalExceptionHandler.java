@@ -2,6 +2,7 @@ package com.acd.researchrepo.exception;
 
 import com.acd.researchrepo.dto.external.error.ErrorResponse;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -58,6 +59,6 @@ public class GlobalExceptionHandler {
         log.error("Generic exception just happened woah. Message: {}", exception.getMessage());
 
         ErrorResponse error = new ErrorResponse("INTERNAL_ERROR", "An unexpected error occurred");
-        return new ResponseEntity<>(error, org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -4,9 +4,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.acd.researchrepo.dto.internal.AuthResponseWithRefreshToken;
+import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
 import com.acd.researchrepo.dto.internal.RefreshResult;
+import com.acd.researchrepo.exception.InvalidTokenException;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.RefreshToken;
 import com.acd.researchrepo.model.User;
@@ -47,7 +48,7 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponseWithRefreshToken authenticateWithGoogle(String googleAuthCode) {
+    public AuthTokenContainer authenticateWithGoogle(String googleAuthCode) {
         GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
         log.info("Successfully exchange auth code for token yay!");
 
@@ -55,7 +56,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         RefreshToken refreshToken = createRefreshToken(user);
 
-        return AuthResponseWithRefreshToken.builder()
+        return AuthTokenContainer.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.getToken())
                 .user(userMapper.toDto(user))
@@ -65,18 +66,16 @@ public class AuthService {
     @Transactional
     public RefreshResult refreshAccessToken(String refreshTokenValue) {
         RefreshToken oldToken = refreshTokenRepository.findByToken(refreshTokenValue)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> new InvalidTokenException("INVALID REFRESH TOKEN"));
 
         if (oldToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             refreshTokenRepository.delete(oldToken);
-            throw new RuntimeException("Refresh token expired");
+            throw new InvalidTokenException("REFRESH TOKEN EXPIRED");
         }
 
         User user = oldToken.getUser();
-        // Mark the old token as used/invalidate it to prevent reuse
         refreshTokenRepository.delete(oldToken);
 
-        // Create a new refresh token for future use
         RefreshToken newToken = createRefreshToken(user);
         String newAccessToken = jwtService.generateAccessToken(user);
         return new RefreshResult(newAccessToken, newToken.getToken());
