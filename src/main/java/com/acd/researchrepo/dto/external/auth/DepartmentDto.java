@@ -1,4 +1,4 @@
-package com.acd.researchrepo.dto.external;
+package com.acd.researchrepo.dto.external.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

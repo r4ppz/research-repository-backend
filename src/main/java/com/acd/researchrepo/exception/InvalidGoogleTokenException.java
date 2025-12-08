@@ -1,12 +1,14 @@
 package com.acd.researchrepo.exception;
 
-public class InvalidGoogleTokenException extends RuntimeException {
+import org.springframework.http.HttpStatus;
 
+public class InvalidGoogleTokenException extends BaseException {
     public InvalidGoogleTokenException(String message) {
-        super(message);
+        super(message, "INVALID_GOOGLE_TOKEN", HttpStatus.UNAUTHORIZED);
     }
 
     public InvalidGoogleTokenException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, "INVALID_GOOGLE_TOKEN", HttpStatus.UNAUTHORIZED);
+        this.initCause(cause);
     }
 }

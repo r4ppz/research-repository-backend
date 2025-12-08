@@ -1,6 +1,6 @@
 package com.acd.researchrepo.dto.internal;
 
-import com.acd.researchrepo.dto.external.UserDto;
+import com.acd.researchrepo.dto.external.auth.UserDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

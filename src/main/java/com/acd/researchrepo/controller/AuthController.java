@@ -2,9 +2,9 @@ package com.acd.researchrepo.controller;
 
 import java.util.Map;
 
-import com.acd.researchrepo.dto.external.AuthResponse;
-import com.acd.researchrepo.dto.external.GoogleAuthRequest;
-import com.acd.researchrepo.dto.external.RefreshResponse;
+import com.acd.researchrepo.dto.external.auth.AuthResponse;
+import com.acd.researchrepo.dto.external.auth.GoogleAuthRequest;
+import com.acd.researchrepo.dto.external.auth.RefreshResponse;
 import com.acd.researchrepo.service.AuthService;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -45,22 +45,23 @@ public class AuthController {
     public ResponseEntity<AuthResponse> authenticateWithGoogle(
             @Valid @RequestBody GoogleAuthRequest request,
             HttpServletResponse response) {
+        log.info("Request code is recieved! (I think)");
 
-        try {
-            var authResult = authService
-                    .authenticateWithGoogle(request.getCode());
-            setRefreshTokenCookie(response, authResult.getRefreshToken());
-            var publicResponse = AuthResponse
-                    .builder()
-                    .accessToken(authResult.getAccessToken())
-                    .user(authResult.getUser())
-                    .build();
+        var authResult = authService
+                .authenticateWithGoogle(request.getCode());
+        log.info("Auth service is success yay!");
 
-            return ResponseEntity.ok(publicResponse);
+        setRefreshTokenCookie(response, authResult.getRefreshToken());
+        log.info("Refresh token has been set!");
 
-        } catch (Exception e) {
-            throw e;
-        }
+        var publicResponse = AuthResponse
+                .builder()
+                .accessToken(authResult.getAccessToken())
+                .user(authResult.getUser())
+                .build();
+
+        log.info("Login success :)  returning the public response which is accessToken and user");
+        return ResponseEntity.ok(publicResponse);
     }
 
     @PostMapping("/refresh")
@@ -69,6 +70,7 @@ public class AuthController {
 
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
+            log.error("Refresh token is nall bruh");
             return ResponseEntity.status(401).body(new RefreshResponse(null));
         }
 

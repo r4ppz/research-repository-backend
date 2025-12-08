@@ -1,18 +1,18 @@
 package com.acd.researchrepo.exception;
 
-import org.apache.http.HttpStatus;
+import org.springframework.http.HttpStatus;
 
 import lombok.Getter;
 
 @Getter
-public class BaseExeption extends RuntimeException {
+public class BaseException extends RuntimeException {
 
     private final String errorCode;
     private final HttpStatus status;
 
-    public BaseExeption(String message, String errorCode, HttpStatus status) {
+    public BaseException(String message, String errorCode, HttpStatus status) {
         super(message);
-        this.status = status;
         this.errorCode = errorCode;
+        this.status = status;
     }
 }
