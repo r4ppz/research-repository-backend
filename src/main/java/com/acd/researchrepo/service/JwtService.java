@@ -28,10 +28,6 @@ public class JwtService {
     @Value("${app.jwt.access-token-expiry:3600}")
     private int accessTokenExpirySeconds;
 
-    /**
-     * Generate JWT access token for user
-     * Contains user info needed for authorization
-     */
     public String generateAccessToken(User user) {
         LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(accessTokenExpirySeconds);
 
@@ -41,7 +37,6 @@ public class JwtService {
         claims.put("fullName", user.getFullName());
         claims.put("role", user.getRole().name());
 
-        // Add department info if user has one
         if (user.getDepartment() != null) {
             claims.put("departmentId", user.getDepartment().getDepartmentId());
         }
@@ -57,10 +52,6 @@ public class JwtService {
         return token;
     }
 
-    /**
-     * Validate and parse JWT token
-     * Returns claims if valid, throws exception if invalid
-     */
     public Claims validateToken(String token) {
         try {
             return Jwts.parserBuilder()
@@ -73,17 +64,11 @@ public class JwtService {
         }
     }
 
-    /**
-     * Extract user ID from token
-     */
     public Integer getUserIdFromToken(String token) {
         Claims claims = validateToken(token);
         return Integer.valueOf(claims.getSubject());
     }
 
-    /**
-     * Check if token is expired
-     */
     public boolean isTokenExpired(String token) {
         try {
             Claims claims = validateToken(token);

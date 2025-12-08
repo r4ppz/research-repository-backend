@@ -18,7 +18,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class AuthService {
 
     @Value("${app.refresh-token.max-age:2592000}")
@@ -46,6 +49,8 @@ public class AuthService {
     @Transactional
     public AuthResponseWithRefreshToken authenticateWithGoogle(String googleAuthCode) {
         GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
+        log.info("Successfully exchange auth code for token yay!");
+
         User user = findOrCreateUser(googleUserInfo);
         String accessToken = jwtService.generateAccessToken(user);
         RefreshToken refreshToken = createRefreshToken(user);
@@ -78,6 +83,7 @@ public class AuthService {
         Optional<User> existingUser = userRepository.findByEmail(googleUserInfo.getEmail());
 
         if (existingUser.isPresent()) {
+            log.info("Existing user already exist. Used that instead :)");
             return existingUser.get();
         }
 
@@ -89,6 +95,7 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(newUser);
+        log.info("New user has been created yay!");
 
         return savedUser;
     }

@@ -18,7 +18,10 @@ import com.google.api.client.json.gson.GsonFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class GoogleAuthService {
 
     @Value("${app.google.client-id}")
@@ -65,9 +68,6 @@ public class GoogleAuthService {
                 .build();
     }
 
-    /**
-     * Exchange Google OAuth authorization code for user information
-     */
     public GoogleUserInfo validateCodeAndGetUserInfo(String authorizationCode) {
         try {
             GoogleTokenResponse tokenResponse = GAuthorizationCodeFlow
@@ -77,18 +77,23 @@ public class GoogleAuthService {
 
             String idTokenString = tokenResponse.getIdToken();
             if (idTokenString == null) {
+                log.error("ID token is null bruh. No ID token received from Google");
                 throw new InvalidGoogleTokenException("No ID token received from Google");
             }
 
             GoogleIdToken idToken = GIdTokenVerifier.verify(idTokenString);
             if (idToken == null) {
+                log.error("ID token is bull and not valid bruh.");
                 throw new InvalidGoogleTokenException("Invalid Google ID token");
             }
 
+            log.info("ID token is valid yay!");
             GoogleIdToken.Payload payload = idToken.getPayload();
             String email = payload.getEmail();
+            log.info("User email: {}", email);
 
             if (!payload.getEmailVerified()) {
+                log.error("ohff google email is not verified. Fake user? who knows");
                 throw new InvalidGoogleTokenException("Google email not verified");
             }
 

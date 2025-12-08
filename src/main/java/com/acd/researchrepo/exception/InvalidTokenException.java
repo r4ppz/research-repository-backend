@@ -1,12 +1,15 @@
 package com.acd.researchrepo.exception;
 
-public class InvalidTokenException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidTokenException extends BaseException {
 
     public InvalidTokenException(String message) {
-        super(message);
+        super(message, "INVALID_TOKEN", HttpStatus.UNAUTHORIZED);
     }
 
     public InvalidTokenException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, "INVALID_TOKEN", HttpStatus.UNAUTHORIZED);
+        this.initCause(cause);
     }
 }
