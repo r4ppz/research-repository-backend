@@ -77,7 +77,7 @@ public class GoogleAuthService {
 
             String idTokenString = tokenResponse.getIdToken();
             if (idTokenString == null) {
-                log.error("ID token is null bruh. No ID token received from Google");
+                log.error("ID token is null bruh.");
                 throw new InvalidGoogleTokenException("No ID token received from Google");
             }
 

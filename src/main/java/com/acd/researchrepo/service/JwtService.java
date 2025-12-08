@@ -13,22 +13,30 @@ import com.acd.researchrepo.model.User;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import lombok.extern.slf4j.Slf4j;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.validation.constraints.NotNull;
 
 @Service
+@Validated
+@Slf4j
 public class JwtService {
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${app.jwt.access-token-expiry:3600}")
+    @Value("${app.jwt.access-token-expiry}")
     private int accessTokenExpirySeconds;
 
-    public String generateAccessToken(User user) {
+    public String generateAccessToken(@NotNull User user) {
+        log.debug("Generating access token for user ID: {}", user.getUserId());
         LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(accessTokenExpirySeconds);
 
         Map<String, Object> claims = new HashMap<>();
@@ -38,6 +46,7 @@ public class JwtService {
         claims.put("role", user.getRole().name());
 
         if (user.getDepartment() != null) {
+            log.debug("Including department in claims for user ID: {}", user.getUserId());
             claims.put("departmentId", user.getDepartment().getDepartmentId());
         }
 
@@ -49,31 +58,37 @@ public class JwtService {
                 .setIssuer("research-repo")
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
+        log.info("Access token generated successfully for user ID: {}", user.getUserId());
         return token;
     }
 
-    public Claims validateToken(String token) {
+    public Claims validateToken(@NotNull String token) {
+        log.debug("Entering validateToken method");
         try {
-            return Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (Exception e) {
+            log.debug("JWT token validated successfully");
+            return claims;
+        } catch (JwtException e) {
+            log.error("Invalid JWT token: {}", e.getMessage());
             throw new InvalidTokenException("Invalid or expired JWT token", e);
         }
     }
 
-    public Integer getUserIdFromToken(String token) {
+    public Integer getUserIdFromToken(@NotNull String token) {
         Claims claims = validateToken(token);
         return Integer.valueOf(claims.getSubject());
     }
 
-    public boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(@NotNull String token) {
         try {
             Claims claims = validateToken(token);
             return claims.getExpiration().before(new Date());
-        } catch (Exception e) {
+        } catch (JwtException e) {
+            log.warn("Error checking token expiration: {}", e.getMessage());
             return true;
         }
     }
