@@ -1,7 +1,6 @@
 package com.acd.researchrepo.service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.acd.researchrepo.dto.internal.AuthTokenContainer;
@@ -50,27 +49,28 @@ public class AuthService {
     @Transactional
     public AuthTokenContainer authenticateWithGoogle(String googleAuthCode) {
         GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
-        log.info("Successfully exchange auth code for token yay!");
 
         User user = findOrCreateUser(googleUserInfo);
+        RefreshToken newRefresh = createRefreshToken(user);
         String accessToken = jwtService.generateAccessToken(user);
-        RefreshToken refreshToken = createRefreshToken(user);
 
         return AuthTokenContainer.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
+                .refreshToken(newRefresh.getToken())
                 .user(userMapper.toDto(user))
                 .build();
     }
 
     @Transactional
     public RefreshResult refreshAccessToken(String refreshTokenValue) {
-        RefreshToken oldToken = refreshTokenRepository.findByToken(refreshTokenValue)
-                .orElseThrow(() -> new InvalidTokenException("INVALID REFRESH TOKEN"));
+        LocalDateTime now = LocalDateTime.now();
 
-        if (oldToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+        RefreshToken oldToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
+
+        if (oldToken.getExpiresAt().isBefore(now)) {
             refreshTokenRepository.delete(oldToken);
-            throw new InvalidTokenException("REFRESH TOKEN EXPIRED");
+            throw new InvalidTokenException("Refresh token expired");
         }
 
         User user = oldToken.getUser();
@@ -78,45 +78,44 @@ public class AuthService {
 
         RefreshToken newToken = createRefreshToken(user);
         String newAccessToken = jwtService.generateAccessToken(user);
+
         return new RefreshResult(newAccessToken, newToken.getToken());
     }
 
-    private User findOrCreateUser(GoogleUserInfo googleUserInfo) {
-        Optional<User> existingUser = userRepository.findByEmail(googleUserInfo.getEmail());
+    @Transactional
+    private User findOrCreateUser(GoogleUserInfo googleInfo) {
+        return userRepository.findByEmail(googleInfo.getEmail())
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            .email(googleInfo.getEmail())
+                            .fullName(googleInfo.getName())
+                            .role(UserRole.STUDENT)
+                            .department(null)
+                            .build();
 
-        if (existingUser.isPresent()) {
-            log.info("User already exist!");
-            return existingUser.get();
-        }
-
-        User newUser = User.builder()
-                .email(googleUserInfo.getEmail())
-                .fullName(googleUserInfo.getName())
-                .role(UserRole.STUDENT)
-                .department(null)
-                .build();
-
-        User savedUser = userRepository.save(newUser);
-        log.info("New user has been created :)");
-
-        return savedUser;
+                    User saved = userRepository.save(newUser);
+                    return saved;
+                });
     }
 
+    @Transactional
     public void revokeRefreshToken(String refreshTokenValue) {
-        refreshTokenRepository.findByToken(refreshTokenValue).ifPresent(t -> {
-            refreshTokenRepository.delete(t);
-        });
+        refreshTokenRepository.findByToken(refreshTokenValue)
+                .ifPresent(refreshTokenRepository::delete);
     }
 
+    @Transactional
     private RefreshToken createRefreshToken(User user) {
-        refreshTokenRepository.deleteExpiredByUserId(user.getUserId(), LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
 
-        RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUser(user);
-        refreshToken.setToken(UUID.randomUUID().toString());
-        refreshToken.setExpiresAt(LocalDateTime.now().plusSeconds(refreshTokenMaxAge));
-        refreshToken.setCreatedAt(LocalDateTime.now());
+        refreshTokenRepository.deleteExpiredByUserId(user.getUserId(), now);
 
-        return refreshTokenRepository.save(refreshToken);
+        RefreshToken token = new RefreshToken();
+        token.setUser(user);
+        token.setToken(UUID.randomUUID().toString());
+        token.setCreatedAt(now);
+        token.setExpiresAt(now.plusSeconds(refreshTokenMaxAge));
+
+        return refreshTokenRepository.save(token);
     }
 }
