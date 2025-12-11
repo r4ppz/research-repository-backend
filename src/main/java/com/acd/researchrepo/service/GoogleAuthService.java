@@ -18,10 +18,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@Slf4j
 public class GoogleAuthService {
 
     @Value("${app.google.client-id}")
@@ -36,88 +33,97 @@ public class GoogleAuthService {
     @Value("${app.environment}")
     private String environment;
 
-    private final GoogleAuthorizationCodeFlow GAuthorizationCodeFlow;
-    private final GoogleIdTokenVerifier GIdTokenVerifier;
+    private final GoogleAuthorizationCodeFlow authorizationFlow;
+    private final GoogleIdTokenVerifier idTokenVerifier;
 
-    public GoogleAuthService(@Value("${app.google.client-id}") String googleClientId,
+    public GoogleAuthService(
+            @Value("${app.google.client-id}") String googleClientId,
             @Value("${app.google.client-secret}") String googleClientSecret,
-            @Value("${app.google.redirect-uri}") String redirectUri) {
+            @Value("${app.google.redirect-uri}") String redirectUri,
+            @Value("${app.environment}") String environment) {
 
         this.googleClientId = googleClientId;
         this.googleClientSecret = googleClientSecret;
         this.redirectUri = redirectUri;
+        this.environment = environment;
 
-        // Create OAuth flow for exchanging authorization code for tokens
-        this.GAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow.Builder(
-                new NetHttpTransport(),
-                new GsonFactory(),
+        NetHttpTransport transport = new NetHttpTransport();
+        GsonFactory jsonFactory = new GsonFactory();
+
+        this.authorizationFlow = new GoogleAuthorizationCodeFlow.Builder(
+                transport,
+                jsonFactory,
                 googleClientId,
                 googleClientSecret,
-                Arrays.asList(
-                        "openid",
-                        "email",
-                        "profile"))
+                Arrays.asList("openid", "email", "profile"))
                 .setAccessType("offline")
                 .build();
 
-        // Create ID token verifier
-        this.GIdTokenVerifier = new GoogleIdTokenVerifier.Builder(
-                new NetHttpTransport(),
-                new GsonFactory())
+        this.idTokenVerifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                 .setAudience(Collections.singletonList(googleClientId))
                 .build();
     }
 
     public GoogleUserInfo validateCodeAndGetUserInfo(String authorizationCode) {
+        GoogleTokenResponse tokenResponse = exchangeAuthorizationCode(authorizationCode);
+        GoogleIdToken.Payload payload = verifyAndExtractPayload(tokenResponse.getIdToken());
+
+        String email = payload.getEmail();
+        enforceDomainRestrictions(email);
+        enforceEmailVerified(payload);
+
+        return GoogleUserInfo.builder()
+                .email(email)
+                .name((String) payload.get("name"))
+                .googleId(payload.getSubject())
+                .build();
+    }
+
+    private GoogleTokenResponse exchangeAuthorizationCode(String code) {
         try {
-            GoogleTokenResponse tokenResponse = GAuthorizationCodeFlow
-                    .newTokenRequest(authorizationCode)
+            return authorizationFlow
+                    .newTokenRequest(code)
                     .setRedirectUri(redirectUri)
                     .execute();
-
-            String idTokenString = tokenResponse.getIdToken();
-            if (idTokenString == null) {
-                log.error("ID token is null bruh.");
-                throw new InvalidGoogleTokenException("No ID token received from Google");
-            }
-
-            GoogleIdToken idToken = GIdTokenVerifier.verify(idTokenString);
-            if (idToken == null) {
-                log.error("ID token is bull and not valid bruh.");
-                throw new InvalidGoogleTokenException("Invalid Google ID token");
-            }
-
-            log.info("ID token is valid yay!");
-            GoogleIdToken.Payload payload = idToken.getPayload();
-            String email = payload.getEmail();
-            log.info("User email: {}", email);
-
-            if (!payload.getEmailVerified()) {
-                log.error("ohff google email is not verified. Fake user? who knows");
-                throw new InvalidGoogleTokenException("Google email not verified");
-            }
-
-            // INFO: temp
-            if ("development".equalsIgnoreCase(environment)) {
-                if (!email.endsWith(".com")) {
-                    throw new DomainNotAllowedException("Email not allowed.  Must use .com");
-                }
-            } else {
-                if (!email.endsWith("acdeducation.com")) {
-                    throw new DomainNotAllowedException("Email domain not allowed.  Must use @acdeducation.com");
-                }
-            }
-
-            return GoogleUserInfo.builder()
-                    .email(email)
-                    .name((String) payload.get("name"))
-                    .googleId(payload.getSubject())
-                    .build();
-
         } catch (IOException e) {
-            throw new InvalidGoogleTokenException("Failed to communicate with Google", e);
-        } catch (GeneralSecurityException e) {
-            throw new InvalidGoogleTokenException("Failed to verify Google token", e);
+            throw new InvalidGoogleTokenException("Failed to exchange Google authorization code", e);
+        }
+    }
+
+    private GoogleIdToken.Payload verifyAndExtractPayload(String idTokenString) {
+        if (idTokenString == null) {
+            throw new InvalidGoogleTokenException("ID token missing from Google response");
+        }
+
+        GoogleIdToken idToken;
+        try {
+            idToken = idTokenVerifier.verify(idTokenString);
+        } catch (GeneralSecurityException | IOException e) {
+            throw new InvalidGoogleTokenException("Failed to verify Google ID token", e);
+        }
+
+        if (idToken == null) {
+            throw new InvalidGoogleTokenException("Invalid Google ID token");
+        }
+
+        return idToken.getPayload();
+    }
+
+    private void enforceDomainRestrictions(String email) {
+        if ("development".equalsIgnoreCase(environment)) {
+            if (!email.endsWith(".com")) {
+                throw new DomainNotAllowedException("Development mode only allows .com emails");
+            }
+        } else {
+            if (!email.endsWith("acdeducation.com")) {
+                throw new DomainNotAllowedException("Email domain must be @acdeducation.com");
+            }
+        }
+    }
+
+    private void enforceEmailVerified(GoogleIdToken.Payload payload) {
+        if (!payload.getEmailVerified()) {
+            throw new InvalidGoogleTokenException("Google email is not verified");
         }
     }
 }
