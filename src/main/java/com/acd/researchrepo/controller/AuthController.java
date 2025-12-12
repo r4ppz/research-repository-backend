@@ -49,7 +49,7 @@ public class AuthController {
     @Value("${app.refresh-token.max-age:2592000}")
     private int refreshTokenMaxAge;
 
-    @Value("${app.environment:development}")
+    @Value("${spring.profiles.active}")
     private String environment;
 
     public AuthController(
@@ -153,7 +153,7 @@ public class AuthController {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(refreshTokenMaxAge);
-        if ("production".equalsIgnoreCase(environment)) {
+        if ("prod".equalsIgnoreCase(environment)) {
             cookie.setSecure(true);
             cookie.setAttribute("SameSite", "None");
         } else {
@@ -184,7 +184,7 @@ public class AuthController {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        if ("production".equalsIgnoreCase(environment)) {
+        if ("prod".equalsIgnoreCase(environment)) {
             cookie.setSecure(true);
             cookie.setAttribute("SameSite", "None");
         } else {
