@@ -53,6 +53,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, exception.getStatus());
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException exception) {
+        log.error("InvalidTokenException just happened woah. Message: {}", exception.getMessage());
+
+        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
+        return new ResponseEntity<>(error, exception.getStatus());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException exception) {
+        log.error("NotFoundException just happened woah. Message: {}", exception.getMessage());
+
+        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
+        return new ResponseEntity<>(error, exception.getStatus());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception exception, WebRequest request) {
