@@ -65,11 +65,10 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginWithGoogle(
             @Valid @RequestBody GoogleAuthRequest request,
             HttpServletResponse response) {
-        log.info("api/auth/google endpoint hit!!");
-        log.debug("Initiating Google authentication for user request.");
+        log.debug("api/auth/google endpoint hit!!");
 
         AuthTokenContainer authContiner = authService.authenticateWithGoogle(request.getCode());
-        log.info("Google authentication completed successfully.");
+        log.debug("Google authentication completed successfully.");
 
         AuthResponse authResponse = AuthResponse
                 .builder()
@@ -81,7 +80,7 @@ public class AuthController {
         setRefreshTokenCookie(response, authContiner.getRefreshToken());
         log.debug("Refresh token cookie set in response.");
 
-        log.info("Returning authentication response.");
+        log.debug("Returning authentication response.");
         return ResponseEntity.ok(authResponse);
     }
 
@@ -123,12 +122,12 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(HttpServletRequest request) {
-        log.info("api/auth/me endpoint hit!!");
+        log.debug("api/auth/me endpoint hit!!");
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             // NOTE: maybe add custom exception here ?
-            log.error("No auth header found!! WHAT!!!");
+            log.debug("No auth header found!! WHAT!!!");
             return ResponseEntity.status(401).build();
         }
         String token = authHeader.substring(7);
@@ -176,7 +175,7 @@ public class AuthController {
             }
 
         }
-        log.info("No cookies sent with request :( ");
+        log.debug("No cookies sent with request !");
         return null;
     }
 

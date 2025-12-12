@@ -68,9 +68,8 @@ public class GoogleAuthService {
         GoogleTokenResponse tokenResponse = exchangeAuthorizationCode(authorizationCode);
         GoogleIdToken.Payload payload = verifyAndExtractPayload(tokenResponse.getIdToken());
 
-        String email = payload.getEmail();
+        String email = getVerifiedEmail(payload);
         enforceDomainRestrictions(email);
-        enforceEmailVerified(payload);
 
         return GoogleUserInfo.builder()
                 .email(email)
@@ -121,9 +120,14 @@ public class GoogleAuthService {
         }
     }
 
-    private void enforceEmailVerified(GoogleIdToken.Payload payload) {
+    private String getVerifiedEmail(GoogleIdToken.Payload payload) {
         if (!payload.getEmailVerified()) {
             throw new InvalidGoogleTokenException("Google email is not verified");
         }
+        String email = payload.getEmail();
+        if (email == null) {
+            throw new InvalidGoogleTokenException("Google email is null");
+        }
+        return email;
     }
 }
