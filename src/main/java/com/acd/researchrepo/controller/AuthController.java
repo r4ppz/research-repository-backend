@@ -10,6 +10,8 @@ import com.acd.researchrepo.dto.external.auth.UserDto;
 import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.RefreshResult;
 import com.acd.researchrepo.exception.InvalidTokenException;
+import com.acd.researchrepo.exception.NotFoundException;
+import com.acd.researchrepo.exception.UnauthorizedException;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.repository.UserRepository;
@@ -88,13 +90,13 @@ public class AuthController {
     public ResponseEntity<RefreshResponse> refreshAccessToken(
             HttpServletRequest request,
             HttpServletResponse response) {
-        log.info("api/auth/refresh endpoint hit!!");
+        log.debug("api/auth/refresh endpoint hit!!");
 
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
-            log.error("Refresh token is nall bruh");
-            return ResponseEntity.status(401).body(new RefreshResponse(null));
+            throw new UnauthorizedException("Refresh token not found in cookies");
         }
+
         try {
             RefreshResult refreshResult = authService.refreshAccessToken(refreshToken);
             setRefreshTokenCookie(response, refreshResult.getRefreshToken());
@@ -102,7 +104,7 @@ public class AuthController {
             return ResponseEntity.ok(refreshResponse);
         } catch (RuntimeException e) {
             clearRefreshTokenCookie(response);
-            return ResponseEntity.status(401).body(new RefreshResponse(null));
+            throw new UnauthorizedException("Invalid refresh token", e);
         }
     }
 
@@ -110,7 +112,7 @@ public class AuthController {
     public ResponseEntity<?> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
-        log.info("api/auth/logout endpoint hit!!");
+        log.debug("api/auth/logout endpoint hit!!");
 
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken != null) {
@@ -126,22 +128,21 @@ public class AuthController {
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            // NOTE: maybe add custom exception here ?
-            log.debug("No auth header found!! WHAT!!!");
-            return ResponseEntity.status(401).build();
+            throw new UnauthorizedException("Missing or invalid Authorization header");
         }
+
         String token = authHeader.substring(7);
         try {
             Integer userId = jwtService.getUserIdFromToken(token);
             Optional<User> user = userRepository.findById(userId);
             if (!user.isPresent()) {
-                return ResponseEntity.status(404).build();
+                throw new NotFoundException("User not found");
             }
 
             UserDto userDto = userMapper.toDto(user.get());
             return ResponseEntity.ok(userDto);
         } catch (InvalidTokenException e) {
-            return ResponseEntity.status(401).build();
+            throw new UnauthorizedException("Invalid access token");
         }
     }
 
@@ -164,13 +165,12 @@ public class AuthController {
 
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
         if (request.getCookies() == null) {
-            // NOTE: maybe add custom exeption here no?
             log.error("Yea refresh token is null buddy");
             return null;
         }
         for (Cookie cookie : request.getCookies()) {
             if (refreshTokenCookieName.equals(cookie.getName())) {
-                log.info("Cookie: {} = {}", cookie.getName(), cookie.getValue());
+                log.debug("Cookie: {} = {}", cookie.getName(), cookie.getValue());
                 return cookie.getValue();
             }
 
