@@ -30,7 +30,7 @@ public class GoogleAuthService {
     @Value("${app.google.redirect-uri}")
     private String redirectUri;
 
-    @Value("${app.environment}")
+    @Value("${spring.profiles.active}")
     private String environment;
 
     private final GoogleAuthorizationCodeFlow authorizationFlow;
@@ -40,7 +40,7 @@ public class GoogleAuthService {
             @Value("${app.google.client-id}") String googleClientId,
             @Value("${app.google.client-secret}") String googleClientSecret,
             @Value("${app.google.redirect-uri}") String redirectUri,
-            @Value("${app.environment}") String environment) {
+            @Value("${spring.profiles.active}") String environment) {
 
         this.googleClientId = googleClientId;
         this.googleClientSecret = googleClientSecret;
@@ -109,13 +109,13 @@ public class GoogleAuthService {
     }
 
     private void enforceDomainRestrictions(String email) {
-        if ("development".equalsIgnoreCase(environment)) {
-            if (!email.endsWith(".com")) {
-                throw new DomainNotAllowedException("Development mode only allows .com emails");
-            }
-        } else {
+        if ("prod".equalsIgnoreCase(environment)) {
             if (!email.endsWith("acdeducation.com")) {
                 throw new DomainNotAllowedException("Email domain must be @acdeducation.com");
+            }
+        } else {
+            if (!email.endsWith(".com")) {
+                throw new DomainNotAllowedException("Development mode only allows .com emails");
             }
         }
     }
