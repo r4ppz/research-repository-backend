@@ -1,6 +1,5 @@
 package com.acd.researchrepo.controller;
 
-import java.util.Map;
 import java.util.Optional;
 
 import com.acd.researchrepo.dto.external.auth.AuthResponse;
@@ -17,8 +16,8 @@ import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.repository.UserRepository;
 import com.acd.researchrepo.service.AuthService;
 import com.acd.researchrepo.service.JwtService;
+import com.acd.researchrepo.util.CookieUtil;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -42,25 +40,19 @@ public class AuthController {
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final UserRepository userRepository;
-
-    @Value("${app.refresh-token.cookie-name:refreshToken}")
-    private String refreshTokenCookieName;
-
-    @Value("${app.refresh-token.max-age:2592000}")
-    private int refreshTokenMaxAge;
-
-    @Value("${spring.profiles.active}")
-    private String environment;
+    private final CookieUtil cookieUtil;
 
     public AuthController(
             AuthService authService,
             JwtService jwtService,
             UserMapper userMapper,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            CookieUtil cookieUtil) {
         this.jwtService = jwtService;
         this.authService = authService;
         this.userMapper = userMapper;
         this.userRepository = userRepository;
+        this.cookieUtil = cookieUtil;
     }
 
     @PostMapping("/google")
@@ -79,7 +71,7 @@ public class AuthController {
                 .build();
         log.debug("AuthResponse built with user and access token details.");
 
-        setRefreshTokenCookie(response, authContiner.getRefreshToken());
+        cookieUtil.setRefreshTokenCookie(response, authContiner.getRefreshToken());
         log.debug("Refresh token cookie set in response.");
 
         log.debug("Returning authentication response.");
@@ -92,18 +84,18 @@ public class AuthController {
             HttpServletResponse response) {
         log.debug("api/auth/refresh endpoint hit!!");
 
-        String refreshToken = extractRefreshTokenFromCookie(request);
+        String refreshToken = cookieUtil.extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
             throw new UnauthorizedException("Refresh token not found in cookies");
         }
 
         try {
             RefreshResult refreshResult = authService.refreshAccessToken(refreshToken);
-            setRefreshTokenCookie(response, refreshResult.getRefreshToken());
+            cookieUtil.setRefreshTokenCookie(response, refreshResult.getRefreshToken());
             RefreshResponse refreshResponse = new RefreshResponse(refreshResult.getAccessToken());
             return ResponseEntity.ok(refreshResponse);
         } catch (RuntimeException e) {
-            clearRefreshTokenCookie(response);
+            cookieUtil.clearRefreshTokenCookie(response);
             throw new UnauthorizedException("Invalid refresh token", e);
         }
     }
@@ -114,12 +106,12 @@ public class AuthController {
             HttpServletResponse response) {
         log.debug("api/auth/logout endpoint hit!!");
 
-        String refreshToken = extractRefreshTokenFromCookie(request);
+        String refreshToken = cookieUtil.extractRefreshTokenFromCookie(request);
         if (refreshToken != null) {
             authService.revokeRefreshToken(refreshToken);
         }
-        clearRefreshTokenCookie(response);
-        return ResponseEntity.ok().body(Map.of("message", "Logged out successfully"));
+        cookieUtil.clearRefreshTokenCookie(response);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")
@@ -144,53 +136,5 @@ public class AuthController {
         } catch (InvalidTokenException e) {
             throw new UnauthorizedException("Invalid access token");
         }
-    }
-
-    private void setRefreshTokenCookie(
-            HttpServletResponse response,
-            String refreshToken) {
-        Cookie cookie = new Cookie(refreshTokenCookieName, refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(refreshTokenMaxAge);
-        if ("prod".equalsIgnoreCase(environment)) {
-            cookie.setSecure(true);
-            cookie.setAttribute("SameSite", "None");
-        } else {
-            cookie.setSecure(false);
-            cookie.setAttribute("SameSite", "Lax");
-        }
-        response.addCookie(cookie);
-    }
-
-    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
-        if (request.getCookies() == null) {
-            log.error("Yea refresh token is null buddy");
-            return null;
-        }
-        for (Cookie cookie : request.getCookies()) {
-            if (refreshTokenCookieName.equals(cookie.getName())) {
-                log.debug("Cookie: {} = {}", cookie.getName(), cookie.getValue());
-                return cookie.getValue();
-            }
-
-        }
-        log.debug("No cookies sent with request !");
-        return null;
-    }
-
-    private void clearRefreshTokenCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(refreshTokenCookieName, "");
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        if ("prod".equalsIgnoreCase(environment)) {
-            cookie.setSecure(true);
-            cookie.setAttribute("SameSite", "None");
-        } else {
-            cookie.setSecure(false);
-            cookie.setAttribute("SameSite", "Lax");
-        }
-        response.addCookie(cookie);
     }
 }
