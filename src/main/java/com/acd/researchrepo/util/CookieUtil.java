@@ -1,5 +1,7 @@
 package com.acd.researchrepo.util;
 
+import com.acd.researchrepo.environment.AppProperties;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -10,17 +12,24 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class CookieUtil {
 
-    @Value("${app.refresh-token.cookie-name:refreshToken}")
-    private String refreshTokenCookieName;
+    private final String environment;
+    private final String refreshTokenName;
+    private final int refreshTokenMaxAge;
 
-    @Value("${app.refresh-token.max-age:2592000}")
-    private int refreshTokenMaxAge;
+    AppProperties appProperties;
 
-    @Value("${spring.profiles.active}")
-    private String environment;
+    public CookieUtil(
+            AppProperties appProperties,
+            @Value("${spring.profiles.active:}") String environment) {
+        this.environment = environment;
+        this.appProperties = appProperties;
+
+        this.refreshTokenName = appProperties.getToken().getRefreshTokenCookieName();
+        this.refreshTokenMaxAge = appProperties.getToken().getRefreshTokenMaxAge();
+    }
 
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        Cookie cookie = new Cookie(refreshTokenCookieName, refreshToken);
+        Cookie cookie = new Cookie(refreshTokenName, refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(refreshTokenMaxAge);
@@ -39,7 +48,7 @@ public class CookieUtil {
             return null;
         }
         for (Cookie cookie : request.getCookies()) {
-            if (refreshTokenCookieName.equals(cookie.getName())) {
+            if (refreshTokenName.equals(cookie.getName())) {
                 return cookie.getValue();
             }
         }
@@ -47,7 +56,7 @@ public class CookieUtil {
     }
 
     public void clearRefreshTokenCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(refreshTokenCookieName, "");
+        Cookie cookie = new Cookie(refreshTokenName, "");
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
