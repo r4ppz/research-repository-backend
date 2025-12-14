@@ -42,9 +42,9 @@ app:
     secret: ${APP_JWT_SECRET}
     access-token-expiry: ${APP_JWT_ACCESS_TOKEN_EXPIRY:3600}
 
-  refresh-token:
-    cookie-name: ${APP_REFRESH_TOKEN_COOKIE_NAME:refreshToken}
-    max-age: ${APP_REFRESH_TOKEN_MAX_AGE:2592000}
+  token:
+    refresh-token-cookie-name: ${APP_REFRESH_TOKEN_COOKIE_NAME:refreshToken}
+    refresh-token-max-age: ${APP_REFRESH_TOKEN_MAX_AGE:2592000}
 
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
