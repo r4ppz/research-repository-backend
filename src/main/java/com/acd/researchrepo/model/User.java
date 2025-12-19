@@ -57,6 +57,8 @@ public class User {
     @Size(max = 255)
     private String fullName;
 
+    // NOTE: The docs uses enum while in here its not
+    // FIX: maybe ill update the docs or update this to match
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 50)
     @NotNull
