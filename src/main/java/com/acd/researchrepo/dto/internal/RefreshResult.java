@@ -1,15 +1,11 @@
 package com.acd.researchrepo.dto.internal;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class RefreshResult {
-    String accessToken;
-    String refreshToken;
+    private final String accessToken;
+    private final String refreshToken;
 }
