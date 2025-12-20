@@ -92,7 +92,12 @@ public class AuthController {
         try {
             RefreshResult refreshResult = authService.refreshAccessToken(refreshToken);
             cookieUtil.setRefreshTokenCookie(response, refreshResult.getRefreshToken());
-            RefreshResponse refreshResponse = new RefreshResponse(refreshResult.getAccessToken());
+
+            RefreshResponse refreshResponse = RefreshResponse
+                    .builder()
+                    .accessToken(refreshResult.getAccessToken())
+                    .build();
+
             return ResponseEntity.ok(refreshResponse);
         } catch (RuntimeException e) {
             cookieUtil.clearRefreshTokenCookie(response);

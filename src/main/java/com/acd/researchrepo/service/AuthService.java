@@ -79,7 +79,10 @@ public class AuthService {
         RefreshToken newToken = createRefreshToken(user);
         String newAccessToken = jwtService.generateAccessToken(user);
 
-        return new RefreshResult(newAccessToken, newToken.getToken());
+        return RefreshResult.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newToken.getToken())
+                .build();
     }
 
     @Transactional
