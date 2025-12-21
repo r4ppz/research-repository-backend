@@ -8,9 +8,8 @@ import com.acd.researchrepo.dto.external.auth.RefreshResponse;
 import com.acd.researchrepo.dto.external.auth.UserDto;
 import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.RefreshResult;
-import com.acd.researchrepo.exception.InvalidTokenException;
-import com.acd.researchrepo.exception.NotFoundException;
-import com.acd.researchrepo.exception.UnauthorizedException;
+import com.acd.researchrepo.exception.ApiException;
+import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.repository.UserRepository;
@@ -86,7 +85,7 @@ public class AuthController {
 
         String refreshToken = cookieUtil.extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
-            throw new UnauthorizedException("Refresh token not found in cookies");
+            throw new ApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
         }
 
         try {
@@ -101,7 +100,7 @@ public class AuthController {
             return ResponseEntity.ok(refreshResponse);
         } catch (RuntimeException e) {
             cookieUtil.clearRefreshTokenCookie(response);
-            throw new UnauthorizedException("Invalid refresh token", e);
+            throw new ApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
         }
     }
 
@@ -125,7 +124,7 @@ public class AuthController {
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Missing or invalid Authorization header");
+            throw new ApiException(ErrorCode.UNAUTHENTICATED);
         }
 
         String token = authHeader.substring(7);
@@ -133,13 +132,14 @@ public class AuthController {
             Integer userId = jwtService.getUserIdFromToken(token);
             Optional<User> user = userRepository.findById(userId);
             if (!user.isPresent()) {
-                throw new NotFoundException("User not found");
+                throw new ApiException(ErrorCode.UNAUTHENTICATED);
             }
 
             UserDto userDto = userMapper.toDto(user.get());
             return ResponseEntity.ok(userDto);
-        } catch (InvalidTokenException e) {
-            throw new UnauthorizedException("Invalid access token");
+        } catch (Exception e) {
+            throw new ApiException(ErrorCode.UNAUTHENTICATED);
+
         }
     }
 }

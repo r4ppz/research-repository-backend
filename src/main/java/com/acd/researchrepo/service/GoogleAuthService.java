@@ -6,8 +6,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
-import com.acd.researchrepo.exception.DomainNotAllowedException;
-import com.acd.researchrepo.exception.InvalidGoogleTokenException;
+import com.acd.researchrepo.exception.ApiException;
+import com.acd.researchrepo.exception.ErrorCode;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -85,24 +85,24 @@ public class GoogleAuthService {
                     .setRedirectUri(redirectUri)
                     .execute();
         } catch (IOException e) {
-            throw new InvalidGoogleTokenException("Failed to exchange Google authorization code", e);
+            throw new ApiException(ErrorCode.INVALID_TOKEN, "Failed to exchange Google authorization code");
         }
     }
 
     private GoogleIdToken.Payload verifyAndExtractPayload(String idTokenString) {
         if (idTokenString == null) {
-            throw new InvalidGoogleTokenException("ID token missing from Google response");
+            throw new ApiException(ErrorCode.INVALID_TOKEN, "ID token missing from Google response");
         }
 
         GoogleIdToken idToken;
         try {
             idToken = idTokenVerifier.verify(idTokenString);
         } catch (GeneralSecurityException | IOException e) {
-            throw new InvalidGoogleTokenException("Failed to verify Google ID token", e);
+            throw new ApiException(ErrorCode.INVALID_TOKEN, "Failed to verify Google ID token");
         }
 
         if (idToken == null) {
-            throw new InvalidGoogleTokenException("Invalid Google ID token");
+            throw new ApiException(ErrorCode.INVALID_TOKEN, "Invalid Google ID token");
         }
 
         return idToken.getPayload();
@@ -111,22 +111,22 @@ public class GoogleAuthService {
     private void enforceDomainRestrictions(String email) {
         if ("prod".equalsIgnoreCase(environment)) {
             if (!email.endsWith("acdeducation.com")) {
-                throw new DomainNotAllowedException("Email domain must be @acdeducation.com");
+                throw new ApiException(ErrorCode.DOMAIN_NOT_ALLOWED, "Email domain must be @acdeducation.com");
             }
         } else {
             if (!email.endsWith(".com")) {
-                throw new DomainNotAllowedException("Development mode only allows .com emails");
+                throw new ApiException(ErrorCode.DOMAIN_NOT_ALLOWED, "Development mode only allows .com emails");
             }
         }
     }
 
     private String getVerifiedEmail(GoogleIdToken.Payload payload) {
         if (!payload.getEmailVerified()) {
-            throw new InvalidGoogleTokenException("Google email is not verified");
+            throw new ApiException(ErrorCode.INVALID_TOKEN, "Google email is not verified");
         }
         String email = payload.getEmail();
         if (email == null) {
-            throw new InvalidGoogleTokenException("Google email is null");
+            throw new ApiException(ErrorCode.INVALID_TOKEN, "Google email is null");
         }
         return email;
     }

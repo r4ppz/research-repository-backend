@@ -1,80 +1,120 @@
 package com.acd.researchrepo.exception;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.acd.researchrepo.dto.external.error.ErrorResponse;
 
-import org.springframework.http.HttpStatus;
+import org.slf4j.MDC;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import lombok.extern.slf4j.Slf4j;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @ControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(
-            BaseException exception, WebRequest request) {
-        log.error("BaseException just happened woah. Message: {}", exception.getMessage());
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handleApiException(
+            ApiException exception,
+            HttpServletRequest request) {
+        String traceId = MDC.get("traceId");
+        log.warn("Business error [{}]: {}", exception.getErrorCode(), exception.getMessage());
 
-        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
-        return new ResponseEntity<>(error, exception.getStatus());
+        ErrorResponse error = ErrorResponse.builder()
+                .code(exception.getErrorCode().name())
+                .message(exception.getDisplayMessage())
+                .details(exception.getDetails())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity
+                .status(exception.getErrorCode().getHttpStatus())
+                .body(error);
     }
 
-    @ExceptionHandler(DomainNotAllowedException.class)
-    public ResponseEntity<ErrorResponse> handleDomainNotAllowedException(
-            DomainNotAllowedException exception,
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException exception,
+            HttpHeaders headers,
+            HttpStatusCode status,
             WebRequest request) {
-        log.error("DomainNotAllowedException just happened woah. Message: {}", exception.getMessage());
 
-        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
-        return new ResponseEntity<>(error, exception.getStatus());
+        String traceId = MDC.get("traceId");
+
+        List<ErrorResponse.FieldError> fieldErrors = exception
+                .getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> ErrorResponse.FieldError
+                        .builder()
+                        .field(error.getField())
+                        .message(error.getDefaultMessage())
+                        .build())
+                .collect(Collectors.toList());
+
+        ErrorResponse errorResponse = ErrorResponse
+                .builder()
+                .code(ErrorCode.VALIDATION_ERROR.name())
+                .message("Invalid request data")
+                .details(fieldErrors)
+                .traceId(traceId)
+                .build();
+
+        log.warn("Validation failed for {}: {}", request.getDescription(false), fieldErrors);
+
+        // Return ResponseEntity<Object> not ResponseEntity<ErrorResponse>
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
-    @ExceptionHandler(InvalidGoogleTokenException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidGoogleTokenException(
-            InvalidGoogleTokenException exception,
-            WebRequest request) {
-        log.error("InvalidGoogleTokenException just happened woah. Message: {}", exception.getMessage());
-
-        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
-        return new ResponseEntity<>(error, exception.getStatus());
-    }
-
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidTokenException(
-            InvalidTokenException exception,
-            WebRequest request) {
-        log.error("InvalidTokenException just happened woah. Message: {}", exception.getMessage());
-
-        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
-        return new ResponseEntity<>(error, exception.getStatus());
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException exception) {
-        log.error("InvalidTokenException just happened woah. Message: {}", exception.getMessage());
-
-        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
-        return new ResponseEntity<>(error, exception.getStatus());
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException exception) {
-        log.error("NotFoundException just happened woah. Message: {}", exception.getMessage());
-
-        ErrorResponse error = new ErrorResponse(exception.getErrorCode(), exception.getMessage());
-        return new ResponseEntity<>(error, exception.getStatus());
-    }
-
+    // Ultimate fallback - CATCH EVERYTHING ELSE
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception exception, WebRequest request) {
-        log.error("Generic exception just happened woah. Message: {}", exception.getMessage());
+    public ResponseEntity<ErrorResponse> handleUnhandledException(Exception exception) {
+        String traceId = MDC.get("traceId");
+        log.error("UNEXPECTED ERROR [{}]: {}", traceId, exception.getMessage(), exception);
 
-        ErrorResponse error = new ErrorResponse("INTERNAL_ERROR", "An unexpected error occurred");
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        ErrorResponse errorResponse = ErrorResponse
+                .builder()
+                .code(ErrorCode.INTERNAL_ERROR.name())
+                .message("Internal server error")
+                .details(null)
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.internalServerError().body(errorResponse);
+    }
+
+    // Critical: Prevent information leakage
+    @Override
+    public ResponseEntity<Object> handleExceptionInternal(
+            Exception ex,
+            Object body,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        // Force all unhandled exceptions through the proper format
+        if (body == null || !(body instanceof ErrorResponse)) {
+            String traceId = MDC.get("traceId");
+            return ResponseEntity.status(status)
+                    .body(ErrorResponse
+                            .builder()
+                            .code(ErrorCode.INTERNAL_ERROR.name())
+                            .message("Internal server error")
+                            .details(null)
+                            .traceId(traceId)
+                            .build());
+
+        }
+        return super.handleExceptionInternal(ex, body, headers, status, request);
     }
 }
