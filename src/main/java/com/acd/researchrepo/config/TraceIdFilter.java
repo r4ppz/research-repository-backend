@@ -1,0 +1,59 @@
+package com.acd.researchrepo.config;
+
+import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class TraceIdFilter implements Filter {
+    private static final String TRACE_ID_HEADER = "X-Trace-Id";
+    private static final int TRACE_ID_LENGTH = 12;
+
+    @Override
+    public void doFilter(
+            ServletRequest request,
+            ServletResponse response,
+            FilterChain chain) throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String traceId = httpRequest.getHeader(TRACE_ID_HEADER);
+
+        // Generate if missing (frontend won't send it)
+        if (StringUtils.isBlank(traceId)) {
+            traceId = generateTraceId();
+        }
+
+        // Propagate to logs and downstream services
+        MDC.put("traceId", traceId);
+
+        ((HttpServletResponse) response).setHeader(TRACE_ID_HEADER, traceId);
+
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            MDC.clear();
+        }
+    }
+
+    private String generateTraceId() {
+        SecureRandom random = new SecureRandom();
+        return random.ints(TRACE_ID_LENGTH, 0, 16)
+                .mapToObj(Integer::toHexString)
+                .collect(Collectors.joining());
+    }
+}

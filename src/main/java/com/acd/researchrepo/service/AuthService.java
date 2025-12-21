@@ -6,7 +6,8 @@ import java.util.UUID;
 import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
 import com.acd.researchrepo.dto.internal.RefreshResult;
-import com.acd.researchrepo.exception.InvalidTokenException;
+import com.acd.researchrepo.exception.ApiException;
+import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.RefreshToken;
 import com.acd.researchrepo.model.User;
@@ -66,11 +67,11 @@ public class AuthService {
         LocalDateTime now = LocalDateTime.now();
 
         RefreshToken oldToken = refreshTokenRepository.findByToken(refreshTokenValue)
-                .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
+                .orElseThrow(() -> new ApiException(ErrorCode.REFRESH_TOKEN_REVOKED));
 
         if (oldToken.getExpiresAt().isBefore(now)) {
             refreshTokenRepository.delete(oldToken);
-            throw new InvalidTokenException("Refresh token expired");
+            throw new ApiException(ErrorCode.DOMAIN_NOT_ALLOWED);
         }
 
         User user = oldToken.getUser();

@@ -7,7 +7,8 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
-import com.acd.researchrepo.exception.InvalidTokenException;
+import com.acd.researchrepo.exception.ApiException;
+import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.model.User;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +66,7 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (JwtException e) {
-            throw new InvalidTokenException("Invalid or expired JWT token", e);
+            throw new ApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
         }
     }
 
