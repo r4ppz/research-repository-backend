@@ -2,7 +2,6 @@ package com.acd.researchrepo.config;
 
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
@@ -46,14 +45,17 @@ public class TraceIdFilter implements Filter {
         try {
             chain.doFilter(request, response);
         } finally {
-            MDC.clear();
+            MDC.remove("traceId");
         }
     }
 
     private String generateTraceId() {
-        SecureRandom random = new SecureRandom();
-        return random.ints(TRACE_ID_LENGTH, 0, 16)
-                .mapToObj(Integer::toHexString)
-                .collect(Collectors.joining());
+        byte[] bytes = new byte[TRACE_ID_LENGTH / 2];
+        new SecureRandom().nextBytes(bytes);
+        StringBuilder sb = new StringBuilder(TRACE_ID_LENGTH);
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 }
