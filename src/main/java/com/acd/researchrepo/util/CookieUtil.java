@@ -12,20 +12,19 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class CookieUtil {
 
+    AppProperties appProperties;
+
     private final String environment;
     private final String refreshTokenName;
     private final int refreshTokenMaxAge;
-
-    AppProperties appProperties;
 
     public CookieUtil(
             AppProperties appProperties,
             @Value("${spring.profiles.active:}") String environment) {
         this.environment = environment;
         this.appProperties = appProperties;
-
-        this.refreshTokenName = appProperties.getToken().getRefreshTokenCookieName();
-        this.refreshTokenMaxAge = appProperties.getToken().getRefreshTokenMaxAge();
+        this.refreshTokenName = this.appProperties.getToken().getRefreshTokenCookieName();
+        this.refreshTokenMaxAge = this.appProperties.getToken().getRefreshTokenMaxAge();
     }
 
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
