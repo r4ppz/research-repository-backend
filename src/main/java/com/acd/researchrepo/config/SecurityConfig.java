@@ -2,7 +2,8 @@ package com.acd.researchrepo.config;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.acd.researchrepo.environment.AppProperties;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -18,8 +19,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${app.cors.allowed-origins}")
-    private List<String> allowedOrigins;
+    private final AppProperties appProperties;
+
+    private final List<String> allowedOrigins;
+
+    public SecurityConfig(AppProperties appProperties) {
+        this.appProperties = appProperties;
+        this.allowedOrigins = this.appProperties.getCors().getAllowedOrigins();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

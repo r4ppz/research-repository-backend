@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
+@Order(Ordered.HIGHEST_PRECEDENCE) // runs first before spring MVC
 public class TraceIdFilter implements Filter {
     private static final String TRACE_ID_HEADER = "X-Trace-Id";
     private static final int TRACE_ID_LENGTH = 12;
@@ -32,7 +32,6 @@ public class TraceIdFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String traceId = httpRequest.getHeader(TRACE_ID_HEADER);
 
-        // Generate if missing (frontend won't send it)
         if (StringUtils.isBlank(traceId)) {
             traceId = generateTraceId();
         }
