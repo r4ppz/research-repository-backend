@@ -30,7 +30,10 @@ public class CustomUserPrincipal implements OAuth2User {
         return Collections.emptyList();
     }
 
-    // Getters for user information
+    public User getUser() {
+        return user;
+    }
+
     public Integer getUserId() {
         return user.getUserId();
     }
@@ -65,10 +68,5 @@ public class CustomUserPrincipal implements OAuth2User {
     @Override
     public String getName() {
         return user.getUserId().toString();
-    }
-
-    // Additional convenience methods
-    public User getUser() {
-        return user;
     }
 }
