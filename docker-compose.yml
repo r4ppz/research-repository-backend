@@ -1,4 +1,4 @@
-# This is the compose config for prod and overide is for dev
+# This is the compose config for prod and override is for dev
 # > docker compose -f docker-compose.yml up -d
 
 services:
