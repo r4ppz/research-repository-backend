@@ -1,7 +1,5 @@
 package com.acd.researchrepo.controller;
 
-import java.util.Optional;
-
 import com.acd.researchrepo.dto.external.auth.AuthResponse;
 import com.acd.researchrepo.dto.external.auth.GoogleAuthRequest;
 import com.acd.researchrepo.dto.external.auth.RefreshResponse;
@@ -11,13 +9,14 @@ import com.acd.researchrepo.dto.internal.RefreshResult;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
-import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.repository.UserRepository;
+import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.AuthService;
 import com.acd.researchrepo.service.JwtService;
 import com.acd.researchrepo.util.CookieUtil;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,9 +35,7 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtService jwtService;
     private final UserMapper userMapper;
-    private final UserRepository userRepository;
     private final CookieUtil cookieUtil;
 
     public AuthController(
@@ -47,10 +44,8 @@ public class AuthController {
             UserMapper userMapper,
             UserRepository userRepository,
             CookieUtil cookieUtil) {
-        this.jwtService = jwtService;
         this.authService = authService;
         this.userMapper = userMapper;
-        this.userRepository = userRepository;
         this.cookieUtil = cookieUtil;
     }
 
@@ -60,17 +55,17 @@ public class AuthController {
             HttpServletResponse response) {
         log.debug("api/auth/google endpoint hit!!");
 
-        AuthTokenContainer authContiner = authService.authenticateWithGoogle(request.getCode());
+        AuthTokenContainer authContainer = authService.authenticateWithGoogle(request.getCode());
         log.debug("Google authentication completed successfully.");
 
         AuthResponse authResponse = AuthResponse
                 .builder()
-                .accessToken(authContiner.getAccessToken())
-                .user(authContiner.getUser())
+                .accessToken(authContainer.getAccessToken())
+                .user(authContainer.getUser())
                 .build();
         log.debug("AuthResponse built with user and access token details.");
 
-        cookieUtil.setRefreshTokenCookie(response, authContiner.getRefreshToken());
+        cookieUtil.setRefreshTokenCookie(response, authContainer.getRefreshToken());
         log.debug("Refresh token cookie set in response.");
 
         log.debug("Returning authentication response.");
@@ -119,27 +114,14 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser(HttpServletRequest request) {
+    public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserPrincipal principal) {
         log.debug("api/auth/me endpoint hit!!");
 
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (principal == null) {
             throw new ApiException(ErrorCode.UNAUTHENTICATED);
         }
 
-        String token = authHeader.substring(7);
-        try {
-            Integer userId = jwtService.getUserIdFromToken(token);
-            Optional<User> user = userRepository.findById(userId);
-            if (!user.isPresent()) {
-                throw new ApiException(ErrorCode.UNAUTHENTICATED);
-            }
-
-            UserDto userDto = userMapper.toDto(user.get());
-            return ResponseEntity.ok(userDto);
-        } catch (Exception e) {
-            throw new ApiException(ErrorCode.UNAUTHENTICATED);
-
-        }
+        UserDto userDto = userMapper.toDto(principal.getUser());
+        return ResponseEntity.ok(userDto);
     }
 }
