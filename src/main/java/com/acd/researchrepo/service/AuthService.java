@@ -71,7 +71,7 @@ public class AuthService {
 
         if (oldToken.getExpiresAt().isBefore(now)) {
             refreshTokenRepository.delete(oldToken);
-            throw new ApiException(ErrorCode.DOMAIN_NOT_ALLOWED);
+            throw new ApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
         }
 
         User user = oldToken.getUser();
