@@ -2,21 +2,17 @@ package com.acd.researchrepo.dto.external.auth;
 
 import com.acd.researchrepo.model.enums.UserRole;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.extern.jackson.Jacksonized;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@Jacksonized
 public class UserDto {
-    private Integer userId;
-    private String email;
-    private String fullName;
-    private UserRole role;
-    private DepartmentDto department;
+    private final Integer userId;
+    private final String email;
+    private final String fullName;
+    private final UserRole role;
+    private final DepartmentDto department;
 }

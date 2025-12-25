@@ -7,14 +7,11 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
-import com.acd.researchrepo.exception.InvalidTokenException;
 import com.acd.researchrepo.model.User;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -55,31 +52,5 @@ public class JwtService {
                 .setIssuer("research-repo")
                 .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
-    }
-
-    public Claims validateToken(@NotNull String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(signingKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (JwtException e) {
-            throw new InvalidTokenException("Invalid or expired JWT token", e);
-        }
-    }
-
-    public Integer getUserIdFromToken(@NotNull String token) {
-        Claims claims = validateToken(token);
-        return Integer.valueOf(claims.getSubject());
-    }
-
-    public boolean isTokenExpired(@NotNull String token) {
-        try {
-            Claims claims = validateToken(token);
-            return claims.getExpiration().before(new Date());
-        } catch (JwtException e) {
-            return true;
-        }
     }
 }
