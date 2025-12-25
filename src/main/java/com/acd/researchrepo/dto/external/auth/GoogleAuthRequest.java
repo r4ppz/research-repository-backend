@@ -11,5 +11,5 @@ import jakarta.validation.constraints.NotNull;
 @Jacksonized
 public class GoogleAuthRequest {
     @NotNull(message = "Auth code cannot be blank")
-    private String code;
+    private final String code;
 }
