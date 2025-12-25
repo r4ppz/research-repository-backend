@@ -7,7 +7,6 @@ import javax.crypto.SecretKey;
 import com.acd.researchrepo.environment.AppProperties;
 import com.acd.researchrepo.security.CustomJwtAuthenticationConverter;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -32,16 +31,18 @@ public class SecurityConfig {
     private final CustomJwtAuthenticationConverter customJwtAuthenticationConverter;
 
     private final List<String> allowedOrigins;
+    private final String jwtSecret;
 
     public SecurityConfig(AppProperties appProperties,
             CustomJwtAuthenticationConverter customJwtAuthenticationConverter) {
         this.appProperties = appProperties;
         this.customJwtAuthenticationConverter = customJwtAuthenticationConverter;
         this.allowedOrigins = this.appProperties.getCors().getAllowedOrigins();
+        this.jwtSecret = this.appProperties.getJwt().getSecret();
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(@Value("${app.jwt.secret}") String jwtSecret) {
+    public JwtDecoder jwtDecoder() {
         byte[] keyBytes = jwtSecret.getBytes();
         SecretKey key = Keys.hmacShaKeyFor(keyBytes);
         return NimbusJwtDecoder.withSecretKey(key)
