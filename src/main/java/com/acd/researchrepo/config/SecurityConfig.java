@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .oauth2ResourceServer(
                         oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter)))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/auth/**")
+                    auth.requestMatchers("/api/auth/google", "/api/auth/refresh", "/api/auth/logout")
                             .permitAll()
                             .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                             .permitAll()
