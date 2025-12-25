@@ -1,0 +1,13 @@
+# Development override configuration for docker-compose.
+# Usage: docker compose up -d
+
+services:
+  backend:
+    command: mvn spring-boot:run
+    volumes:
+      - ./src:/app/src
+      - ./pom.xml:/app/pom.xml
+      - m2:/root/.m2
+
+volumes:
+  m2:

@@ -1,24 +1,22 @@
 package com.acd.researchrepo.controller;
 
-import java.util.Optional;
-
 import com.acd.researchrepo.dto.external.auth.AuthResponse;
 import com.acd.researchrepo.dto.external.auth.GoogleAuthRequest;
 import com.acd.researchrepo.dto.external.auth.RefreshResponse;
 import com.acd.researchrepo.dto.external.auth.UserDto;
 import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.RefreshResult;
-import com.acd.researchrepo.exception.InvalidTokenException;
-import com.acd.researchrepo.exception.NotFoundException;
-import com.acd.researchrepo.exception.UnauthorizedException;
+import com.acd.researchrepo.exception.ApiException;
+import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
-import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.repository.UserRepository;
+import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.AuthService;
 import com.acd.researchrepo.service.JwtService;
 import com.acd.researchrepo.util.CookieUtil;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,9 +35,7 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtService jwtService;
     private final UserMapper userMapper;
-    private final UserRepository userRepository;
     private final CookieUtil cookieUtil;
 
     public AuthController(
@@ -48,10 +44,8 @@ public class AuthController {
             UserMapper userMapper,
             UserRepository userRepository,
             CookieUtil cookieUtil) {
-        this.jwtService = jwtService;
         this.authService = authService;
         this.userMapper = userMapper;
-        this.userRepository = userRepository;
         this.cookieUtil = cookieUtil;
     }
 
@@ -61,17 +55,17 @@ public class AuthController {
             HttpServletResponse response) {
         log.debug("api/auth/google endpoint hit!!");
 
-        AuthTokenContainer authContiner = authService.authenticateWithGoogle(request.getCode());
+        AuthTokenContainer authContainer = authService.authenticateWithGoogle(request.getCode());
         log.debug("Google authentication completed successfully.");
 
         AuthResponse authResponse = AuthResponse
                 .builder()
-                .accessToken(authContiner.getAccessToken())
-                .user(authContiner.getUser())
+                .accessToken(authContainer.getAccessToken())
+                .user(authContainer.getUser())
                 .build();
         log.debug("AuthResponse built with user and access token details.");
 
-        cookieUtil.setRefreshTokenCookie(response, authContiner.getRefreshToken());
+        cookieUtil.setRefreshTokenCookie(response, authContainer.getRefreshToken());
         log.debug("Refresh token cookie set in response.");
 
         log.debug("Returning authentication response.");
@@ -86,17 +80,22 @@ public class AuthController {
 
         String refreshToken = cookieUtil.extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
-            throw new UnauthorizedException("Refresh token not found in cookies");
+            throw new ApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
         }
 
         try {
             RefreshResult refreshResult = authService.refreshAccessToken(refreshToken);
             cookieUtil.setRefreshTokenCookie(response, refreshResult.getRefreshToken());
-            RefreshResponse refreshResponse = new RefreshResponse(refreshResult.getAccessToken());
+
+            RefreshResponse refreshResponse = RefreshResponse
+                    .builder()
+                    .accessToken(refreshResult.getAccessToken())
+                    .build();
+
             return ResponseEntity.ok(refreshResponse);
         } catch (RuntimeException e) {
             cookieUtil.clearRefreshTokenCookie(response);
-            throw new UnauthorizedException("Invalid refresh token", e);
+            throw new ApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
         }
     }
 
@@ -115,26 +114,14 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser(HttpServletRequest request) {
+    public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserPrincipal principal) {
         log.debug("api/auth/me endpoint hit!!");
 
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Missing or invalid Authorization header");
+        if (principal == null) {
+            throw new ApiException(ErrorCode.UNAUTHENTICATED);
         }
 
-        String token = authHeader.substring(7);
-        try {
-            Integer userId = jwtService.getUserIdFromToken(token);
-            Optional<User> user = userRepository.findById(userId);
-            if (!user.isPresent()) {
-                throw new NotFoundException("User not found");
-            }
-
-            UserDto userDto = userMapper.toDto(user.get());
-            return ResponseEntity.ok(userDto);
-        } catch (InvalidTokenException e) {
-            throw new UnauthorizedException("Invalid access token");
-        }
+        UserDto userDto = userMapper.toDto(principal.getUser());
+        return ResponseEntity.ok(userDto);
     }
 }
