@@ -7,7 +7,6 @@ import javax.crypto.SecretKey;
 import com.acd.researchrepo.environment.AppProperties;
 import com.acd.researchrepo.security.CustomJwtAuthenticationConverter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +14,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -33,7 +33,6 @@ public class SecurityConfig {
 
     private final List<String> allowedOrigins;
 
-    @Autowired
     public SecurityConfig(AppProperties appProperties,
             CustomJwtAuthenticationConverter customJwtAuthenticationConverter) {
         this.appProperties = appProperties;
@@ -46,7 +45,7 @@ public class SecurityConfig {
         byte[] keyBytes = jwtSecret.getBytes();
         SecretKey key = Keys.hmacShaKeyFor(keyBytes);
         return NimbusJwtDecoder.withSecretKey(key)
-                .macAlgorithm(org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS512).build();
+                .macAlgorithm(MacAlgorithm.HS512).build();
     }
 
     @Bean

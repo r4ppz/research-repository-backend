@@ -113,6 +113,8 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    // This differs from the docs (/users/me).
+    // Ill update the documentation or change this idk.
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserPrincipal principal) {
         log.debug("api/auth/me endpoint hit!!");
