@@ -1,5 +1,5 @@
-# Just run it normally when in dev (auto overide prod config)
-# > docker compose up -d
+# Development override configuration for docker-compose.
+# Usage: docker compose up -d
 
 services:
   backend:
