@@ -12,6 +12,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -42,20 +45,20 @@ public class SecurityConfig {
     }
 
     @Bean
+    JwtDecoder jwtDecoder() {
+        byte[] keyBytes = jwtSecret.getBytes();
+        SecretKey key = Keys.hmacShaKeyFor(keyBytes);
+        return NimbusJwtDecoder.withSecretKey(key)
+                .macAlgorithm(MacAlgorithm.HS512).build();
+    }
+
+    @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(
-                        oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter)))
-                .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/auth/google", "/api/auth/refresh", "/api/auth/logout")
-                            .permitAll()
-                            .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-                            .permitAll()
-                            .anyRequest()
-                            .authenticated();
-                });
+                .sessionManagement(sessionManagement())
+                .oauth2ResourceServer(oauth2ResourceServer())
+                .authorizeHttpRequests(authorizeHttpRequests());
         return http.build();
     }
 
@@ -74,11 +77,20 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    JwtDecoder jwtDecoder() {
-        byte[] keyBytes = jwtSecret.getBytes();
-        SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-        return NimbusJwtDecoder.withSecretKey(key)
-                .macAlgorithm(MacAlgorithm.HS512).build();
+    private Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oauth2ResourceServer() {
+        return oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter));
+    }
+
+    private Customizer<SessionManagementConfigurer<HttpSecurity>> sessionManagement() {
+        return sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    private Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry> authorizeHttpRequests() {
+        return auth -> auth.requestMatchers("/api/auth/google", "/api/auth/refresh", "/api/auth/logout")
+                .permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                .permitAll()
+                .anyRequest()
+                .authenticated();
     }
 }
