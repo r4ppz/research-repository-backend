@@ -1,4 +1,4 @@
-package com.acd.researchrepo.specifications;
+package com.acd.researchrepo.specification;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Predicate;
 
-public class ResearchPaperSpecifications {
+public class ResearchPaperSpecification {
     public static Specification<ResearchPaper> build(
             String searchTerm,
             List<Integer> departmentIds,

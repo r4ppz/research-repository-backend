@@ -6,8 +6,10 @@ import java.util.stream.Collectors;
 
 import com.acd.researchrepo.dto.external.papers.PaginatedResponseDto;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
+import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.ResearchPaperService;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,14 +33,28 @@ public class ResearchPaperController {
             @RequestParam(value = "sortBy", required = false) String sortBy,
             @RequestParam(value = "sortOrder", required = false) String sortOrder,
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "20") int size) {
+            @RequestParam(value = "size", required = false, defaultValue = "20") int size,
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
 
-        List<Integer> departmentIds = (departmentIdStr == null || departmentIdStr.isEmpty())
-                ? null
-                : Arrays.stream(departmentIdStr.split(","))
-                        .map(Integer::parseInt)
-                        .collect(Collectors.toList());
+        List<Integer> departmentIds;
 
-        return researchPaperService.getPapers(search, departmentIds, year, archived, sortBy, sortOrder, page, size);
+        if (departmentIdStr == null || departmentIdStr.isEmpty()) {
+            departmentIds = null;
+        }
+
+        departmentIds = Arrays.stream(departmentIdStr.split(","))
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+
+        return researchPaperService.getPapers(
+                search,
+                departmentIds,
+                year,
+                archived,
+                sortBy,
+                sortOrder,
+                page,
+                size,
+                userPrincipal);
     }
 }
