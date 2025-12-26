@@ -1,5 +1,6 @@
 package com.acd.researchrepo.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,6 +78,35 @@ public class ResearchPaperService {
                 .number(paperPage.getNumber())
                 .size(paperPage.getSize())
                 .build();
+    }
+
+    public List<Integer> getAvailableYears(CustomUserPrincipal user) {
+        UserRole role = user.getRole();
+        List<ResearchPaper> papers;
+
+        if (role == UserRole.DEPARTMENT_ADMIN) {
+            Integer deptId = user.getDepartmentId();
+            if (deptId == null)
+                return List.of();
+            papers = researchPaperRepository
+                    .findAll((root, query, cb) -> cb.equal(root.get("department").get("departmentId"), deptId));
+        } else {
+            papers = researchPaperRepository.findAll();
+        }
+
+        return papers.stream()
+                .filter(paper -> {
+                    if (role == UserRole.STUDENT)
+                        return !paper.getArchived();
+                    // TEACHER, DEPT_ADMIN, SUPER_ADMIN: allow all in-scope
+                    if (role == UserRole.DEPARTMENT_ADMIN)
+                        return true;
+                    return true;
+                })
+                .map(paper -> paper.getSubmissionDate().getYear())
+                .distinct()
+                .sorted(Comparator.reverseOrder()) // Descending order
+                .collect(Collectors.toList());
     }
 
     private String allowedSortBy(String sortBy) {
