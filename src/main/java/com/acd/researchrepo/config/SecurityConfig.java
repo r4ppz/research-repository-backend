@@ -86,10 +86,15 @@ public class SecurityConfig {
     }
 
     private Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry> authorizeHttpRequests() {
-        return auth -> auth.requestMatchers("/api/auth/google", "/api/auth/refresh", "/api/auth/logout")
+        return auth -> auth
+                // These are public endpoints, JWT/Accesstoken are not required.
+                // But /refresh and /logout requires httpCookie/RefreshToken
+                .requestMatchers("/api/auth/google", "/api/auth/refresh", "/api/auth/logout")
                 .permitAll()
+                // For endpoints docs library
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                 .permitAll()
+                // Other endpoint will require JWT/Accesstoken
                 .anyRequest()
                 .authenticated();
     }
