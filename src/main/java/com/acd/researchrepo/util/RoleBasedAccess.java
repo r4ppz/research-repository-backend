@@ -3,6 +3,10 @@ package com.acd.researchrepo.util;
 import com.acd.researchrepo.model.enums.UserRole;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 
+/**
+ * Utility class for role-based access control.
+ * Provides methods to check if a user has specific roles.
+ */
 public final class RoleBasedAccess {
 
     private RoleBasedAccess() {

@@ -11,6 +11,24 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Predicate;
 
 public class ResearchPaperSpecification {
+
+    /**
+     * Builds a Specification for filtering ResearchPaper entities based on the
+     * provided criteria.
+     *
+     * @param searchTerm    A string to search for in the title, authorName, and
+     *                      abstractText fields.
+     * @param departmentIds A list of department IDs to filter by. Matches papers
+     *                      belonging to these departments.
+     * @param year          The year to filter by. Matches papers submitted within
+     *                      this year.
+     * @param archived      A Boolean indicating whether to filter by archived
+     *                      status.
+     *                      If true, matches archived papers; if false, matches
+     *                      non-archived papers.
+     * @return A Specification object that can be used to query ResearchPaper
+     *         entities.
+     */
     public static Specification<ResearchPaper> build(
             String searchTerm,
             List<Integer> departmentIds,

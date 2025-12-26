@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/papers")
 public class ResearchPaperController {
@@ -35,6 +38,7 @@ public class ResearchPaperController {
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @RequestParam(value = "size", required = false, defaultValue = "20") int size,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+        log.debug("api/papers endpoint hit!!");
 
         List<Integer> departmentIds;
 

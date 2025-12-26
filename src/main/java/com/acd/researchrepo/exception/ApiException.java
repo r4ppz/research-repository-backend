@@ -6,6 +6,10 @@ import com.acd.researchrepo.dto.external.error.ErrorResponse;
 
 import lombok.Getter;
 
+/**
+ * Custom exception class for handling API-specific errors.
+ * Encapsulates an error code, optional details, and a custom message.
+ */
 @Getter
 public class ApiException extends RuntimeException {
 

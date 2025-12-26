@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/filters")
 public class FilterController {
@@ -27,6 +30,7 @@ public class FilterController {
     @GetMapping("/years")
     public ResponseEntity<YearListResponse> getAvailableYears(
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+        log.debug("api/filters endpoint hit!!");
 
         List<Integer> years = departmentYearService.getAvailableYears(userPrincipal);
 
