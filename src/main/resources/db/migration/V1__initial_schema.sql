@@ -7,7 +7,6 @@
 
 -- NOTE: Every design change (new, fix, or improvement) must be documented (WHY).
 -- In prod, all schema changes must be versioned and applied via proper migration scripts.
--- In prod, schema changes must be applied via migration scripts.
 -- In dev, complete schema rewrites are allowed temporarily.
 
 -- DEPARTMENTS
