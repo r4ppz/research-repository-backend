@@ -17,6 +17,9 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.constraints.NotNull;
 
+// This is JWT/access token generation class
+// SpringSecurity handles most of the work like decoding, verifying etc.
+// Refresh token generation is in AuthService since they are not JWTs
 @Service
 public class JwtService {
 
