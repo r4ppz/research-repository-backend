@@ -72,11 +72,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.warn("Validation failed for {}: {}", request.getDescription(false), fieldErrors);
 
-        // Return ResponseEntity<Object> not ResponseEntity<ErrorResponse>
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
-    // Ultimate fallback - CATCH EVERYTHING ELSE
+    // Ultimate fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnhandledException(Exception exception) {
         String traceId = MDC.get("traceId");
@@ -93,7 +92,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.internalServerError().body(errorResponse);
     }
 
-    // Critical: Prevent information leakage
+    // Prevent information leakage
     @Override
     public ResponseEntity<Object> handleExceptionInternal(
             Exception ex,
