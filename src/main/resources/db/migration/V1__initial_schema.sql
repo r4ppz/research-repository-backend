@@ -1,3 +1,15 @@
+-- Design choices:
+-- No enum since its hard to map java to postgres enum, it is handle in app layer
+-- No second auto update timestamp, handle in application layer
+-- Partial unique index in document_requests to prevent duplicate PENDING or ACCEPTED requests for same user/paper
+-- Email validation handle in app layer
+-- Serial is old but good, map easily in Java using integer
+
+-- NOTE: Every design change (new, fix, or improvement) must be documented (WHY).
+-- In prod, all schema changes must be versioned and applied via proper migration scripts.
+-- In prod, schema changes must be applied via migration scripts.
+-- In dev, complete schema rewrites are allowed temporarily.
+
 -- DEPARTMENTS
 CREATE TABLE departments (
     department_id SERIAL PRIMARY KEY,
@@ -55,5 +67,14 @@ CREATE INDEX idx_requests_paper ON document_requests(paper_id);
 
 -- Partial unique index to prevent duplicate PENDING or ACCEPTED requests for same user/paper
 CREATE UNIQUE INDEX idx_unique_pending_accepted_request
-ON document_requests (user_id, paper_id)
+ON document_requests(user_id, paper_id)
 WHERE status IN ('PENDING', 'ACCEPTED');
+
+CREATE TABLE refresh_tokens (
+    token_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    last_used_at TIMESTAMP NULL
+);
