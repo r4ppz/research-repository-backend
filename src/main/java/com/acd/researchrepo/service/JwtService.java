@@ -7,9 +7,9 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
+import com.acd.researchrepo.environment.AppProperties;
 import com.acd.researchrepo.model.User;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Jwts;
@@ -20,15 +20,18 @@ import jakarta.validation.constraints.NotNull;
 @Service
 public class JwtService {
 
-    private final SecretKey signingKey;
+    private final AppProperties appProperties;
+
+    private final String jwtSecret;
     private final int accessTokenExpirySeconds;
 
-    public JwtService(
-            @Value("${app.jwt.secret}") String jwtSecret,
-            @Value("${app.jwt.access-token-expiry}") int accessTokenExpirySeconds) {
+    private final SecretKey signingKey;
 
-        this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        this.accessTokenExpirySeconds = accessTokenExpirySeconds;
+    public JwtService(AppProperties appProperties) {
+        this.appProperties = appProperties;
+        this.jwtSecret = this.appProperties.getJwt().getSecret();
+        this.accessTokenExpirySeconds = this.appProperties.getJwt().getAccessTokenExpiry();
+        this.signingKey = Keys.hmacShaKeyFor(this.jwtSecret.getBytes());
     }
 
     public String generateAccessToken(@NotNull User user) {
