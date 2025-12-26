@@ -65,7 +65,7 @@ public class User {
     @Default
     private UserRole role = UserRole.STUDENT;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id")
     private Department department;
 
