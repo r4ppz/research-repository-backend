@@ -1,6 +1,5 @@
 package com.acd.researchrepo.service;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,10 +7,10 @@ import com.acd.researchrepo.dto.external.papers.PaginatedResponseDto;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
 import com.acd.researchrepo.model.ResearchPaper;
-import com.acd.researchrepo.model.enums.UserRole;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.specification.ResearchPaperSpecification;
+import com.acd.researchrepo.util.RoleBasedAccess;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,13 +42,11 @@ public class ResearchPaperService {
             int size,
             CustomUserPrincipal userPrincipal) {
 
-        UserRole userRole = userPrincipal.getRole();
-
-        if (userRole == UserRole.STUDENT || userRole == UserRole.TEACHER) {
+        if (RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
             archived = false;
         }
 
-        if (userRole == UserRole.DEPARTMENT_ADMIN) {
+        if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
             departmentIds = List.of(userPrincipal.getDepartmentId());
         }
 
@@ -78,35 +75,6 @@ public class ResearchPaperService {
                 .number(paperPage.getNumber())
                 .size(paperPage.getSize())
                 .build();
-    }
-
-    public List<Integer> getAvailableYears(CustomUserPrincipal user) {
-        UserRole role = user.getRole();
-        List<ResearchPaper> papers;
-
-        if (role == UserRole.DEPARTMENT_ADMIN) {
-            Integer deptId = user.getDepartmentId();
-            if (deptId == null)
-                return List.of();
-            papers = researchPaperRepository
-                    .findAll((root, query, cb) -> cb.equal(root.get("department").get("departmentId"), deptId));
-        } else {
-            papers = researchPaperRepository.findAll();
-        }
-
-        return papers.stream()
-                .filter(paper -> {
-                    if (role == UserRole.STUDENT)
-                        return !paper.getArchived();
-                    // TEACHER, DEPT_ADMIN, SUPER_ADMIN: allow all in-scope
-                    if (role == UserRole.DEPARTMENT_ADMIN)
-                        return true;
-                    return true;
-                })
-                .map(paper -> paper.getSubmissionDate().getYear())
-                .distinct()
-                .sorted(Comparator.reverseOrder()) // Descending order
-                .collect(Collectors.toList());
     }
 
     private String allowedSortBy(String sortBy) {

@@ -3,10 +3,12 @@ package com.acd.researchrepo.controller;
 import java.util.List;
 
 import com.acd.researchrepo.dto.external.auth.DepartmentDto;
+import com.acd.researchrepo.dto.external.filters.DepartmentListResponse;
+import com.acd.researchrepo.dto.external.filters.YearListResponse;
 import com.acd.researchrepo.security.CustomUserPrincipal;
-import com.acd.researchrepo.service.DepartmentService;
-import com.acd.researchrepo.service.ResearchPaperService;
+import com.acd.researchrepo.service.DepartmentYearService;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,21 +18,36 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/filters")
 public class FilterController {
 
-    private final ResearchPaperService paperService;
-    private final DepartmentService departmentService;
+    private final DepartmentYearService departmentYearService;
 
-    public FilterController(ResearchPaperService paperService, DepartmentService departmentService) {
-        this.paperService = paperService;
-        this.departmentService = departmentService;
+    public FilterController(DepartmentYearService departmentYearService) {
+        this.departmentYearService = departmentYearService;
     }
 
     @GetMapping("/years")
-    public List<Integer> getAvailableYears(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        return paperService.getAvailableYears(userPrincipal);
+    public ResponseEntity<YearListResponse> getAvailableYears(
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
+        List<Integer> years = departmentYearService.getAvailableYears(userPrincipal);
+
+        if (years.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(YearListResponse.builder().years(years).build());
+
     }
 
     @GetMapping("/departments")
-    public List<DepartmentDto> getDepartments(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        return departmentService.getAvailableDepartments(userPrincipal);
+    public ResponseEntity<DepartmentListResponse> getDepartments(
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
+        List<DepartmentDto> departments = departmentYearService.getAvailableDepartments(userPrincipal);
+
+        if (departments.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(DepartmentListResponse.builder().deparments(departments).build());
     }
 }
