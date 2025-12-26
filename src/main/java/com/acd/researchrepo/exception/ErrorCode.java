@@ -8,9 +8,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
+    // HTTPS 400
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Invalid request data"),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Malformed request"),
-
     INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Authentication failed"),
 
     // HTTP 401

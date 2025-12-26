@@ -42,15 +42,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder() {
-        byte[] keyBytes = jwtSecret.getBytes();
-        SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-        return NimbusJwtDecoder.withSecretKey(key)
-                .macAlgorithm(MacAlgorithm.HS512).build();
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -68,7 +60,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
@@ -80,5 +72,13 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    JwtDecoder jwtDecoder() {
+        byte[] keyBytes = jwtSecret.getBytes();
+        SecretKey key = Keys.hmacShaKeyFor(keyBytes);
+        return NimbusJwtDecoder.withSecretKey(key)
+                .macAlgorithm(MacAlgorithm.HS512).build();
     }
 }
