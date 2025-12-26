@@ -7,6 +7,7 @@ import com.acd.researchrepo.dto.external.papers.PaginatedResponseDto;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
 import com.acd.researchrepo.model.ResearchPaper;
+import com.acd.researchrepo.model.enums.UserRole;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.specification.ResearchPaperSpecification;
@@ -41,6 +42,16 @@ public class ResearchPaperService {
             int size,
             CustomUserPrincipal userPrincipal) {
 
+        UserRole userRole = userPrincipal.getRole();
+
+        if (userRole == UserRole.STUDENT || userRole == UserRole.TEACHER) {
+            archived = false;
+        }
+
+        if (userRole == UserRole.DEPARTMENT_ADMIN) {
+            departmentIds = List.of(userPrincipal.getDepartmentId());
+        }
+
         // Sanitize sortBy and sortOrder against allowed fields
         Sort sort = Sort.by((sortOrder != null && sortOrder.equalsIgnoreCase("asc"))
                 ? Sort.Direction.ASC
@@ -53,14 +64,14 @@ public class ResearchPaperService {
 
         Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
 
-        List<ResearchPaperDto> dtos = paperPage
+        List<ResearchPaperDto> researchPaperDtos = paperPage
                 .getContent()
                 .stream()
                 .map(researchPaperMapper::toDto)
                 .collect(Collectors.toList());
 
         return PaginatedResponseDto.<ResearchPaperDto>builder()
-                .content(dtos)
+                .content(researchPaperDtos)
                 .totalElements((int) paperPage.getTotalElements())
                 .totalPages(paperPage.getTotalPages())
                 .number(paperPage.getNumber())

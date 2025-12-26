@@ -57,7 +57,7 @@ public class ResearchPaper {
     @Size(max = 512)
     private String filePath;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id", nullable = false)
     @NotNull
     private Department department;

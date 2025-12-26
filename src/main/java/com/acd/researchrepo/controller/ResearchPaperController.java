@@ -40,11 +40,11 @@ public class ResearchPaperController {
 
         if (departmentIdStr == null || departmentIdStr.isEmpty()) {
             departmentIds = null;
+        } else {
+            departmentIds = Arrays.stream(departmentIdStr.split(","))
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
         }
-
-        departmentIds = Arrays.stream(departmentIdStr.split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
 
         return researchPaperService.getPapers(
                 search,

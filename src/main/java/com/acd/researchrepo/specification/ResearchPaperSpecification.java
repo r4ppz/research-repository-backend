@@ -1,5 +1,6 @@
 package com.acd.researchrepo.specification;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,9 +37,12 @@ public class ResearchPaperSpecification {
                 predicates.add(root.get("department").get("departmentId").in(departmentIds));
             }
 
-            // Year matching (can use extract function; works with Hibernate/Postgres)
+            // year filtering
             if (year != null) {
-                predicates.add(cb.equal(cb.function("year", Integer.class, root.get("submissionDate")), year));
+                predicates.add(cb.between(
+                        root.get("submissionDate"),
+                        LocalDate.of(year, 1, 1),
+                        LocalDate.of(year, 12, 31)));
             }
 
             // Archive filtering
