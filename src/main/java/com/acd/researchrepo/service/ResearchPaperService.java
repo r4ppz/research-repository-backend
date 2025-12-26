@@ -8,7 +8,8 @@ import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
 import com.acd.researchrepo.model.ResearchPaper;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
-import com.acd.researchrepo.specifications.ResearchPaperSpecifications;
+import com.acd.researchrepo.security.CustomUserPrincipal;
+import com.acd.researchrepo.specification.ResearchPaperSpecification;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,8 +31,15 @@ public class ResearchPaperService {
     }
 
     public PaginatedResponseDto<ResearchPaperDto> getPapers(
-            String searchTerm, List<Integer> departmentIds, Integer year, Boolean archived,
-            String sortBy, String sortOrder, int page, int size) {
+            String searchTerm,
+            List<Integer> departmentIds,
+            Integer year,
+            Boolean archived,
+            String sortBy,
+            String sortOrder,
+            int page,
+            int size,
+            CustomUserPrincipal userPrincipal) {
 
         // Sanitize sortBy and sortOrder against allowed fields
         Sort sort = Sort.by((sortOrder != null && sortOrder.equalsIgnoreCase("asc"))
@@ -40,7 +48,7 @@ public class ResearchPaperService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<ResearchPaper> spec = ResearchPaperSpecifications
+        Specification<ResearchPaper> spec = ResearchPaperSpecification
                 .build(searchTerm, departmentIds, year, archived);
 
         Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
