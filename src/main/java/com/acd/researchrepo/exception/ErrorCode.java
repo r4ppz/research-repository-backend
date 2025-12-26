@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Enumeration of application-specific error codes with associated HTTP status
+ * and default error messages.
+ */
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {

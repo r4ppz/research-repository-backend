@@ -19,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Global exception handler for managing and formatting API error responses.
+ */
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
