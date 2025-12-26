@@ -8,21 +8,22 @@ import java.util.stream.Collectors;
 import com.acd.researchrepo.dto.external.auth.DepartmentDto;
 import com.acd.researchrepo.mapper.DepartmentMapper;
 import com.acd.researchrepo.model.Department;
-import com.acd.researchrepo.model.enums.UserRole;
+import com.acd.researchrepo.model.ResearchPaper;
 import com.acd.researchrepo.repository.DepartmentRepository;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
+import com.acd.researchrepo.util.RoleBasedAccess;
 
 import org.springframework.stereotype.Service;
 
 @Service
-public class DepartmentService {
+public class DepartmentYearService {
 
     private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
     private final ResearchPaperRepository researchPaperRepository;
 
-    public DepartmentService(
+    public DepartmentYearService(
             DepartmentRepository departmentRepository,
             ResearchPaperRepository researchPaperRepository,
             DepartmentMapper departmentMapper) {
@@ -32,24 +33,9 @@ public class DepartmentService {
     }
 
     public List<DepartmentDto> getAvailableDepartments(CustomUserPrincipal user) {
-        UserRole role = user.getRole();
-
         List<Department> departments;
 
-        if (role == UserRole.DEPARTMENT_ADMIN) {
-            // Only their own department if assigned
-            Integer deptId = user.getDepartmentId();
-            if (deptId == null)
-                return List.of();
-            Department dep = departmentRepository.findById(deptId).orElse(null);
-
-            if (dep == null)
-                return List.of();
-            departments = List.of(dep);
-
-        } else {
-            departments = departmentRepository.findAll();
-        }
+        departments = departmentRepository.findAll();
 
         // Only include departments that have at least one paper in scope
         Set<Integer> deptHasPaper = researchPaperRepository.findAll().stream()
@@ -64,5 +50,32 @@ public class DepartmentService {
                 .collect(Collectors.toList());
 
         return departmentDto;
+    }
+
+    public List<Integer> getAvailableYears(CustomUserPrincipal user) {
+        List<ResearchPaper> papers;
+
+        if (RoleBasedAccess.isUserDepartmentAdmin(user)) {
+            Integer deptId = user.getDepartmentId();
+            if (deptId == null)
+                return List.of();
+            papers = researchPaperRepository
+                    .findAll((root, query, cb) -> cb.equal(root.get("department").get("departmentId"), deptId));
+        } else {
+            papers = researchPaperRepository.findAll();
+        }
+
+        return papers.stream()
+                .filter(paper -> {
+                    if (RoleBasedAccess.isUserStudent(user))
+                        return !paper.getArchived();
+                    if (RoleBasedAccess.isUserDepartmentAdmin(user))
+                        return true;
+                    return true;
+                })
+                .map(paper -> paper.getSubmissionDate().getYear())
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
     }
 }
