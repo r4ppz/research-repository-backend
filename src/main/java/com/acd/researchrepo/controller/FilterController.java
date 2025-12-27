@@ -52,6 +52,6 @@ public class FilterController {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(DepartmentListResponse.builder().deparments(departments).build());
+        return ResponseEntity.ok(DepartmentListResponse.builder().departments(departments).build());
     }
 }

@@ -10,5 +10,5 @@ import lombok.Getter;
 @Getter
 @Builder
 public class DepartmentListResponse {
-    private List<DepartmentDto> deparments;
+    private List<DepartmentDto> departments;
 }

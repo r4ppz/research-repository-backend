@@ -28,8 +28,7 @@ public class ResearchPaperMapper {
                 .submissionDate(paper.getSubmissionDate())
                 .filePath(paper.getFilePath())
                 .archived(paper.getArchived())
-                .archivedAt(paper
-                        .getArchivedAt())
+                .archivedAt(paper.getArchivedAt())
                 .build();
     }
 }
