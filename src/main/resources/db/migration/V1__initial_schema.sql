@@ -57,12 +57,16 @@ CREATE TABLE document_requests (
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     paper_id INT NOT NULL REFERENCES research_papers(paper_id) ON DELETE CASCADE,
     request_date TIMESTAMP NOT NULL DEFAULT now(),
-    status VARCHAR(50) NOT NULL DEFAULT 'PENDING'
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- Indexes for performance
 CREATE INDEX idx_requests_user ON document_requests(user_id);
 CREATE INDEX idx_requests_paper ON document_requests(paper_id);
+CREATE INDEX idx_requests_created_at ON document_requests(created_at);
+CREATE INDEX idx_requests_updated_at ON document_requests(updated_at);
 
 -- Partial unique index to prevent duplicate PENDING or ACCEPTED requests for same user/paper
 CREATE UNIQUE INDEX idx_unique_pending_accepted_request
