@@ -1,10 +1,13 @@
 package com.acd.researchrepo.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.acd.researchrepo.dto.external.papers.PaginatedResponseDto;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
+import com.acd.researchrepo.exception.ApiException;
+import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
 import com.acd.researchrepo.model.ResearchPaper;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
@@ -76,6 +79,22 @@ public class ResearchPaperService {
                 .number(paperPage.getNumber())
                 .size(paperPage.getSize())
                 .build();
+    }
+
+    public ResearchPaperDto getPaperById(Integer id, CustomUserPrincipal userPrincipal) {
+        Optional<ResearchPaper> paperOpt = researchPaperRepository.findById(id);
+
+        if (paperOpt.isEmpty()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
+        }
+
+        ResearchPaper paper = paperOpt.get();
+
+        if (RoleBasedAccess.isUserStudentOrTeacher(userPrincipal) && paper.getArchived()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
+        }
+
+        return researchPaperMapper.toDto(paper);
     }
 
     private String allowedSortBy(String sortBy) {
