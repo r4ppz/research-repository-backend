@@ -11,6 +11,7 @@ public class OpenApiConfig {
 
     // To use it:
     // > http://localhost:8080/swagger-ui/index.html
+    // Add proper API documentation later
 
     @Bean
     public OpenAPI customOpenAPI() {
