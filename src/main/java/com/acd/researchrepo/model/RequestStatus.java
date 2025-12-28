@@ -1,4 +1,4 @@
-package com.acd.researchrepo.model.enums;
+package com.acd.researchrepo.model;
 
 public enum RequestStatus {
     PENDING, ACCEPTED, REJECTED

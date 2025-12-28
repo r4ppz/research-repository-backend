@@ -1,6 +1,6 @@
 package com.acd.researchrepo.dto.external.auth;
 
-import com.acd.researchrepo.model.enums.UserRole;
+import com.acd.researchrepo.model.UserRole;
 
 import lombok.Builder;
 import lombok.Getter;

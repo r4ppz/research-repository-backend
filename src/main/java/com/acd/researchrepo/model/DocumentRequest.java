@@ -2,8 +2,6 @@ package com.acd.researchrepo.model;
 
 import java.time.LocalDateTime;
 
-import com.acd.researchrepo.model.enums.RequestStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
