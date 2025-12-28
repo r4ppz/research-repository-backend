@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.acd.researchrepo.model.User;
-import com.acd.researchrepo.model.enums.UserRole;
+import com.acd.researchrepo.model.UserRole;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

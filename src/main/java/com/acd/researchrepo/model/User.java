@@ -3,8 +3,6 @@ package com.acd.researchrepo.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.acd.researchrepo.model.enums.UserRole;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;

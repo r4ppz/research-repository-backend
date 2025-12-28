@@ -11,7 +11,7 @@ import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.RefreshToken;
 import com.acd.researchrepo.model.User;
-import com.acd.researchrepo.model.enums.UserRole;
+import com.acd.researchrepo.model.UserRole;
 import com.acd.researchrepo.repository.RefreshTokenRepository;
 import com.acd.researchrepo.repository.UserRepository;
 

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.acd.researchrepo.model.User;
-import com.acd.researchrepo.model.enums.UserRole;
+import com.acd.researchrepo.model.UserRole;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
