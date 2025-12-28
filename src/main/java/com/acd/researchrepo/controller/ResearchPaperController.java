@@ -1,9 +1,5 @@
 package com.acd.researchrepo.controller;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.acd.researchrepo.dto.external.papers.PaginatedResponseDto;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
 import com.acd.researchrepo.security.CustomUserPrincipal;
@@ -30,8 +26,8 @@ public class ResearchPaperController {
     @GetMapping
     public PaginatedResponseDto<ResearchPaperDto> listPapers(
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "departmentId", required = false) String departmentIdStr,
-            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "departmentId", required = false) String departmentId,
+            @RequestParam(value = "year", required = false) String years,
             @RequestParam(value = "archived", required = false) Boolean archived,
             @RequestParam(value = "sortBy", required = false) String sortBy,
             @RequestParam(value = "sortOrder", required = false) String sortOrder,
@@ -40,20 +36,10 @@ public class ResearchPaperController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         log.debug("api/papers endpoint hit!!");
 
-        List<Integer> departmentIds;
-
-        if (departmentIdStr == null || departmentIdStr.isEmpty()) {
-            departmentIds = null;
-        } else {
-            departmentIds = Arrays.stream(departmentIdStr.split(","))
-                    .map(Integer::parseInt)
-                    .collect(Collectors.toList());
-        }
-
         return researchPaperService.getPapers(
                 search,
-                departmentIds,
-                year,
+                departmentId,
+                years,
                 archived,
                 sortBy,
                 sortOrder,

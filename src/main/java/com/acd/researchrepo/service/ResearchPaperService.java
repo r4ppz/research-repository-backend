@@ -33,8 +33,8 @@ public class ResearchPaperService {
 
     public PaginatedResponseDto<ResearchPaperDto> getPapers(
             String searchTerm,
-            List<Integer> departmentIds,
-            Integer year,
+            String departmentIds,
+            String years,
             Boolean archived,
             String sortBy,
             String sortOrder,
@@ -46,8 +46,9 @@ public class ResearchPaperService {
             archived = false;
         }
 
+        // For department admins, override the departmentIds with their own department
         if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
-            departmentIds = List.of(userPrincipal.getDepartmentId());
+            departmentIds = String.valueOf(userPrincipal.getDepartmentId());
         }
 
         // Sanitize sortBy and sortOrder against allowed fields
@@ -58,7 +59,7 @@ public class ResearchPaperService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Specification<ResearchPaper> spec = ResearchPaperSpecification
-                .build(searchTerm, departmentIds, year, archived);
+                .build(searchTerm, departmentIds, years, archived);
 
         Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
 
