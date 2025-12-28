@@ -13,26 +13,20 @@ import jakarta.persistence.criteria.Predicate;
 public class ResearchPaperSpecification {
 
     /**
-     * Builds a Specification for filtering ResearchPaper entities based on the
-     * provided criteria.
+     * Builds a dynamic JPA Specification for filtering ResearchPaper entities.
      *
-     * @param searchTerm    A string to search for in the title, authorName, and
-     *                      abstractText fields.
-     * @param departmentIds A list of department IDs to filter by. Matches papers
-     *                      belonging to these departments.
-     * @param year          The year to filter by. Matches papers submitted within
-     *                      this year.
-     * @param archived      A Boolean indicating whether to filter by archived
-     *                      status.
-     *                      If true, matches archived papers; if false, matches
-     *                      non-archived papers.
-     * @return A Specification object that can be used to query ResearchPaper
-     *         entities.
+     * @param searchTerm    Search string to match against title, authorName, or
+     *                      abstractText (case-insensitive).
+     * @param departmentIds Comma-separated department IDs to filter by department.
+     * @param years         Comma-separated years to filter by submissionDate.
+     * @param archived      Boolean flag to filter by archived status.
+     * @return Specification for querying ResearchPaper entities with the given
+     *         filters.
      */
     public static Specification<ResearchPaper> build(
             String searchTerm,
-            List<Integer> departmentIds,
-            Integer year,
+            String departmentIds,
+            String years,
             Boolean archived) {
 
         return (root, query, cb) -> {
@@ -50,17 +44,45 @@ public class ResearchPaperSpecification {
                         ));
             }
 
-            // Department filtering
+            // Department filtering - parse comma-separated string into list of integers
             if (departmentIds != null && !departmentIds.isEmpty()) {
-                predicates.add(root.get("department").get("departmentId").in(departmentIds));
+                String[] deptIds = departmentIds.split(",");
+                List<Integer> deptIdList = new ArrayList<>();
+                for (String id : deptIds) {
+                    try {
+                        deptIdList.add(Integer.parseInt(id.trim()));
+                    } catch (NumberFormatException e) {
+                        // Skip invalid department IDs
+                    }
+                }
+                if (!deptIdList.isEmpty()) {
+                    predicates.add(root.get("department").get("departmentId").in(deptIdList));
+                }
             }
 
-            // year filtering
-            if (year != null) {
-                predicates.add(cb.between(
-                        root.get("submissionDate"),
-                        LocalDate.of(year, 1, 1),
-                        LocalDate.of(year, 12, 31)));
+            // Year filtering - parse comma-separated string into list of integers and
+            // create OR condition
+            if (years != null && !years.isEmpty()) {
+                String[] yearArray = years.split(",");
+                List<Integer> yearList = new ArrayList<>();
+                for (String yearStr : yearArray) {
+                    try {
+                        yearList.add(Integer.parseInt(yearStr.trim()));
+                    } catch (NumberFormatException e) {
+                        // Skip invalid years
+                    }
+                }
+                if (!yearList.isEmpty()) {
+                    // Create OR condition for all years: (year1 OR year2 OR year3 ...)
+                    List<Predicate> yearPredicates = new ArrayList<>();
+                    for (Integer year : yearList) {
+                        yearPredicates.add(cb.between(
+                                root.get("submissionDate"),
+                                LocalDate.of(year, 1, 1),
+                                LocalDate.of(year, 12, 31)));
+                    }
+                    predicates.add(cb.or(yearPredicates.toArray(new Predicate[0])));
+                }
             }
 
             // Archive filtering
