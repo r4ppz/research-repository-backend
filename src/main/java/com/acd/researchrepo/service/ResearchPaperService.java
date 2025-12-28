@@ -9,7 +9,7 @@ import com.acd.researchrepo.mapper.ResearchPaperMapper;
 import com.acd.researchrepo.model.ResearchPaper;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
-import com.acd.researchrepo.specification.ResearchPaperSpecification;
+import com.acd.researchrepo.spec.ResearchPaperSpec;
 import com.acd.researchrepo.util.RoleBasedAccess;
 
 import org.springframework.data.domain.Page;
@@ -58,7 +58,7 @@ public class ResearchPaperService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<ResearchPaper> spec = ResearchPaperSpecification
+        Specification<ResearchPaper> spec = ResearchPaperSpec
                 .build(searchTerm, departmentIds, years, archived);
 
         Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
