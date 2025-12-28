@@ -1,12 +1,3 @@
--- Departments
-INSERT INTO departments (department_name)
-VALUES
-  ('Computer Science'),
-  ('Mechanical Engineering'),
-  ('Physics'),
-  ('Chemistry'),
-  ('Business Administration');
-
 INSERT INTO research_papers (title, author_name, abstract_text, file_path, department_id, submission_date, archived, created_at, updated_at)
 VALUES
 ('Scalable Byzantine Fault Tolerance in Permissioned Blockchains', 'Alice Smith, John Doe', 'As decentralized systems transition from public to private sectors, the need for scalable consensus mechanisms grows. This paper introduces a sharded Byzantine Fault Tolerance (BFT) protocol that achieves 50,000 transactions per second under 30% node failure scenarios. We provide a rigorous mathematical proof of safety and liveness.', '/files/cs/blockchain_scalability_final.pdf', 1, '2024-02-14', FALSE, NOW(), NOW()),
