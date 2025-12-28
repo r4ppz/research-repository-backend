@@ -30,7 +30,7 @@ public class FilterController {
     @GetMapping("/years")
     public ResponseEntity<YearListResponse> getAvailableYears(
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/filters endpoint hit!!");
+        log.debug("api/filters/years endpoint hit!!");
 
         List<Integer> years = departmentYearService.getAvailableYears(userPrincipal);
 
@@ -45,6 +45,7 @@ public class FilterController {
     @GetMapping("/departments")
     public ResponseEntity<DepartmentListResponse> getDepartments(
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+        log.debug("api/filters/departments endpoint hit!!");
 
         List<DepartmentDto> departments = departmentYearService.getAvailableDepartments(userPrincipal);
 
