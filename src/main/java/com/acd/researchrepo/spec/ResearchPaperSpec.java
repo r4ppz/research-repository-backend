@@ -1,4 +1,4 @@
-package com.acd.researchrepo.specification;
+package com.acd.researchrepo.spec;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Predicate;
 
-public class ResearchPaperSpecification {
+public class ResearchPaperSpec {
 
     /**
      * Builds a dynamic JPA Specification for filtering ResearchPaper entities.

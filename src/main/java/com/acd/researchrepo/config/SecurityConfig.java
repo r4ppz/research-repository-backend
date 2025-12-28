@@ -5,7 +5,7 @@ import java.util.List;
 import javax.crypto.SecretKey;
 
 import com.acd.researchrepo.environment.AppProperties;
-import com.acd.researchrepo.security.CustomJwtAuthenticationConverter;
+import com.acd.researchrepo.security.CustomJwtAuthConverter;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,15 +31,15 @@ import io.jsonwebtoken.security.Keys;
 public class SecurityConfig {
 
     private final AppProperties appProperties;
-    private final CustomJwtAuthenticationConverter customJwtAuthenticationConverter;
+    private final CustomJwtAuthConverter customJwtAuthConverter;
 
     private final List<String> allowedOrigins;
     private final String jwtSecret;
 
     public SecurityConfig(AppProperties appProperties,
-            CustomJwtAuthenticationConverter customJwtAuthenticationConverter) {
+            CustomJwtAuthConverter customJwtAuthConverter) {
         this.appProperties = appProperties;
-        this.customJwtAuthenticationConverter = customJwtAuthenticationConverter;
+        this.customJwtAuthConverter = customJwtAuthConverter;
         this.allowedOrigins = this.appProperties.getCors().getAllowedOrigins();
         this.jwtSecret = this.appProperties.getJwt().getSecret();
     }
@@ -78,7 +78,7 @@ public class SecurityConfig {
     }
 
     private Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oauth2ResourceServer() {
-        return oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter));
+        return oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthConverter));
     }
 
     private Customizer<SessionManagementConfigurer<HttpSecurity>> sessionManagement() {
