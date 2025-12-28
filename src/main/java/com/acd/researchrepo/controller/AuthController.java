@@ -3,21 +3,16 @@ package com.acd.researchrepo.controller;
 import com.acd.researchrepo.dto.external.auth.AuthResponse;
 import com.acd.researchrepo.dto.external.auth.GoogleAuthRequest;
 import com.acd.researchrepo.dto.external.auth.RefreshResponse;
-import com.acd.researchrepo.dto.external.auth.UserDto;
 import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.RefreshResult;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
-import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.repository.UserRepository;
-import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.AuthService;
 import com.acd.researchrepo.service.JwtService;
 import com.acd.researchrepo.util.CookieUtil;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,17 +30,14 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserMapper userMapper;
     private final CookieUtil cookieUtil;
 
     public AuthController(
             AuthService authService,
             JwtService jwtService,
-            UserMapper userMapper,
             UserRepository userRepository,
             CookieUtil cookieUtil) {
         this.authService = authService;
-        this.userMapper = userMapper;
         this.cookieUtil = cookieUtil;
     }
 
@@ -105,19 +97,5 @@ public class AuthController {
         }
         cookieUtil.clearRefreshTokenCookie(response);
         return ResponseEntity.noContent().build();
-    }
-
-    // This differs from the docs (/users/me).
-    // Ill update the documentation or change this idk.
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserPrincipal principal) {
-        log.debug("api/auth/me endpoint hit!!");
-
-        if (principal == null) {
-            throw new ApiException(ErrorCode.UNAUTHENTICATED);
-        }
-
-        UserDto userDto = userMapper.toDto(principal.getUser());
-        return ResponseEntity.ok(userDto);
     }
 }
