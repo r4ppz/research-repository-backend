@@ -104,4 +104,31 @@ public class ResearchPaperService {
             return "authorName";
         return "submissionDate";
     }
+
+    public List<Integer> getAvailableYears(CustomUserPrincipal user) {
+        List<ResearchPaper> papers;
+
+        if (RoleBasedAccess.isUserDepartmentAdmin(user)) {
+            Integer deptId = user.getDepartmentId();
+            if (deptId == null)
+                return List.of();
+            papers = researchPaperRepository
+                    .findAll((root, query, cb) -> cb.equal(root.get("department").get("departmentId"), deptId));
+        } else {
+            papers = researchPaperRepository.findAll();
+        }
+
+        return papers.stream()
+                .filter(paper -> {
+                    if (RoleBasedAccess.isUserStudent(user))
+                        return !paper.getArchived();
+                    if (RoleBasedAccess.isUserDepartmentAdmin(user))
+                        return true;
+                    return true;
+                })
+                .map(paper -> paper.getSubmissionDate().getYear())
+                .distinct()
+                .sorted(java.util.Comparator.reverseOrder())
+                .collect(Collectors.toList());
+    }
 }

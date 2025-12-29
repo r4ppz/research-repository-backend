@@ -8,11 +8,9 @@ import java.util.stream.Collectors;
 import com.acd.researchrepo.dto.external.auth.DepartmentDto;
 import com.acd.researchrepo.mapper.DepartmentMapper;
 import com.acd.researchrepo.model.Department;
-import com.acd.researchrepo.model.ResearchPaper;
 import com.acd.researchrepo.repository.DepartmentRepository;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
-import com.acd.researchrepo.util.RoleBasedAccess;
 
 import org.springframework.stereotype.Service;
 
@@ -50,32 +48,5 @@ public class DepartmentYearService {
                 .collect(Collectors.toList());
 
         return departmentDto;
-    }
-
-    public List<Integer> getAvailableYears(CustomUserPrincipal user) {
-        List<ResearchPaper> papers;
-
-        if (RoleBasedAccess.isUserDepartmentAdmin(user)) {
-            Integer deptId = user.getDepartmentId();
-            if (deptId == null)
-                return List.of();
-            papers = researchPaperRepository
-                    .findAll((root, query, cb) -> cb.equal(root.get("department").get("departmentId"), deptId));
-        } else {
-            papers = researchPaperRepository.findAll();
-        }
-
-        return papers.stream()
-                .filter(paper -> {
-                    if (RoleBasedAccess.isUserStudent(user))
-                        return !paper.getArchived();
-                    if (RoleBasedAccess.isUserDepartmentAdmin(user))
-                        return true;
-                    return true;
-                })
-                .map(paper -> paper.getSubmissionDate().getYear())
-                .distinct()
-                .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
     }
 }
