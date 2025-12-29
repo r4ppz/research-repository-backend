@@ -15,13 +15,13 @@ import com.acd.researchrepo.security.CustomUserPrincipal;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DepartmentYearService {
+public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final DepartmentMapper departmentMapper;
     private final ResearchPaperRepository researchPaperRepository;
 
-    public DepartmentYearService(
+    public DepartmentService(
             DepartmentRepository departmentRepository,
             ResearchPaperRepository researchPaperRepository,
             DepartmentMapper departmentMapper) {

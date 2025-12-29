@@ -6,7 +6,7 @@ import com.acd.researchrepo.dto.external.auth.DepartmentDto;
 import com.acd.researchrepo.dto.external.filters.DepartmentListResponse;
 import com.acd.researchrepo.dto.external.filters.YearListResponse;
 import com.acd.researchrepo.security.CustomUserPrincipal;
-import com.acd.researchrepo.service.DepartmentYearService;
+import com.acd.researchrepo.service.DepartmentService;
 import com.acd.researchrepo.service.ResearchPaperService;
 
 import org.springframework.http.ResponseEntity;
@@ -22,11 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/filters")
 public class FilterController {
 
-    private final DepartmentYearService departmentYearService;
+    private final DepartmentService departmentService;
     private final ResearchPaperService researchPaperService;
 
-    public FilterController(DepartmentYearService departmentYearService, ResearchPaperService researchPaperService) {
-        this.departmentYearService = departmentYearService;
+    public FilterController(DepartmentService departmentService, ResearchPaperService researchPaperService) {
+        this.departmentService = departmentService;
         this.researchPaperService = researchPaperService;
     }
 
@@ -50,7 +50,7 @@ public class FilterController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         log.debug("api/filters/departments endpoint hit!!");
 
-        List<DepartmentDto> departments = departmentYearService.getAvailableDepartments(userPrincipal);
+        List<DepartmentDto> departments = departmentService.getAvailableDepartments(userPrincipal);
 
         if (departments.isEmpty()) {
             return ResponseEntity.noContent().build();
