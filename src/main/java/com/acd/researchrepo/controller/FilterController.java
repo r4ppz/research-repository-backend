@@ -33,29 +33,24 @@ public class FilterController {
     @GetMapping("/years")
     public ResponseEntity<YearListResponse> getAvailableYears(
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/filters/years endpoint hit!!");
+        log.debug("api/filters/years endpoint hit");
 
         List<Integer> years = researchPaperService.getAvailableYears(userPrincipal);
 
-        if (years.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(YearListResponse.builder().years(years).build());
-
+        return years.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(YearListResponse.builder().years(years).build());
     }
 
     @GetMapping("/departments")
     public ResponseEntity<DepartmentListResponse> getDepartments(
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/filters/departments endpoint hit!!");
+        log.debug("api/filters/departments endpoint hit");
 
         List<DepartmentDto> departments = departmentService.getAvailableDepartments(userPrincipal);
 
-        if (departments.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(DepartmentListResponse.builder().departments(departments).build());
+        return departments.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(DepartmentListResponse.builder().departments(departments).build());
     }
 }

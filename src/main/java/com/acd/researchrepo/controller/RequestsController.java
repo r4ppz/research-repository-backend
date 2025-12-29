@@ -23,29 +23,27 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/requests")
 public class RequestsController {
 
-    private final DocumentRequestService documentRequestService;
+    private final DocumentRequestService requestService;
 
-    public RequestsController(DocumentRequestService documentRequestService) {
-        this.documentRequestService = documentRequestService;
+    public RequestsController(DocumentRequestService requestService) {
+        this.requestService = requestService;
     }
 
     @PostMapping
     public ResponseEntity<CreateRequestResponse> createRequest(
-            @Valid @RequestBody CreateRequestRequest requestDto,
-            @AuthenticationPrincipal CustomUserPrincipal principal) {
-        log.debug("api/requests endpoint hit!!");
-
-        CreateRequestResponse response = documentRequestService.createRequest(requestDto, principal);
+            @Valid @RequestBody CreateRequestRequest request,
+            @AuthenticationPrincipal CustomUserPrincipal user) {
+        log.debug("api/requests endpoint hit");
+        CreateRequestResponse response = requestService.createRequest(request, user);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{requestId}")
     public ResponseEntity<Void> deleteRequest(
             @PathVariable Integer requestId,
-            @AuthenticationPrincipal CustomUserPrincipal principal) {
-        log.debug("api/requests/{} endpoint hit!!", requestId);
-
-        documentRequestService.deleteRequest(requestId, principal);
+            @AuthenticationPrincipal CustomUserPrincipal user) {
+        log.debug("api/requests/{} endpoint hit", requestId);
+        requestService.deleteRequest(requestId, user);
         return ResponseEntity.noContent().build();
     }
 }

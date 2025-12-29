@@ -39,7 +39,7 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginWithGoogle(
             @Valid @RequestBody GoogleAuthRequest request,
             HttpServletResponse response) {
-        log.debug("api/auth/google endpoint hit!!");
+        log.debug("api/auth/google endpoint hit");
 
         AuthTokenContainer tokens = authService.authenticateWithGoogle(request.getCode());
         AuthResponse authResponse = AuthResponse.builder()
@@ -55,7 +55,7 @@ public class AuthController {
     public ResponseEntity<RefreshResponse> refreshAccessToken(
             HttpServletRequest request,
             HttpServletResponse response) {
-        log.debug("api/auth/refresh endpoint hit!!");
+        log.debug("api/auth/refresh endpoint hit");
 
         String refreshToken = cookieUtil.extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
@@ -81,7 +81,7 @@ public class AuthController {
     public ResponseEntity<Void> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
-        log.debug("api/auth/logout endpoint hit!!");
+        log.debug("api/auth/logout endpoint hit");
 
         String refreshToken = cookieUtil.extractRefreshTokenFromCookie(request);
         if (refreshToken != null) {

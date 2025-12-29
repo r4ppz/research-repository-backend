@@ -39,7 +39,7 @@ public class ResearchPaperController {
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @RequestParam(value = "size", required = false, defaultValue = "20") int size,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/papers endpoint hit!!");
+        log.debug("api/papers endpoint hit");
 
         return ResponseEntity.ok(researchPaperService.getPapers(
                 search,
@@ -57,7 +57,7 @@ public class ResearchPaperController {
     public ResponseEntity<ResearchPaperDto> getPaperById(
             @PathVariable Integer id,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/papers/{} endpoint hit!!", id);
+        log.debug("api/papers/{} endpoint hit", id);
 
         if (id == null || id <= 0) {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
@@ -70,7 +70,7 @@ public class ResearchPaperController {
     public ResponseEntity<PaperUserRequestResponse> getUserRequestForPaper(
             @PathVariable Integer id,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/papers/{}/my-request endpoint hit!!", id);
+        log.debug("api/papers/{}/my-request endpoint hit", id);
 
         if (id == null || id <= 0) {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");

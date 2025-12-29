@@ -31,7 +31,7 @@ public class UsersController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserPrincipal principal) {
-        log.debug("api/users/me endpoint hit!!");
+        log.debug("api/users/me endpoint hit");
 
         if (principal == null) {
             throw new ApiException(ErrorCode.UNAUTHENTICATED);
@@ -44,7 +44,7 @@ public class UsersController {
     @GetMapping("/me/requests")
     public ResponseEntity<UserDocumentRequestsResponse> getUserRequests(
             @AuthenticationPrincipal CustomUserPrincipal principal) {
-        log.debug("api/users/me/requests endpoint hit!!");
+        log.debug("api/users/me/requests endpoint hit");
 
         if (principal == null) {
             throw new ApiException(ErrorCode.UNAUTHENTICATED);
