@@ -1,6 +1,6 @@
 package com.acd.researchrepo.controller;
 
-import com.acd.researchrepo.dto.external.auth.UserDto;
+import com.acd.researchrepo.dto.external.model.UserDto;
 import com.acd.researchrepo.dto.external.requests.UserDocumentRequestsResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;

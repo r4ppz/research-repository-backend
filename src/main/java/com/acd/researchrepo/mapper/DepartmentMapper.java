@@ -1,6 +1,6 @@
 package com.acd.researchrepo.mapper;
 
-import com.acd.researchrepo.dto.external.auth.DepartmentDto;
+import com.acd.researchrepo.dto.external.model.DepartmentDto;
 import com.acd.researchrepo.model.Department;
 
 import org.springframework.stereotype.Component;

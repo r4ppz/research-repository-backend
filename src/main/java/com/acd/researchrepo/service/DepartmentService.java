@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.acd.researchrepo.dto.external.auth.DepartmentDto;
+import com.acd.researchrepo.dto.external.model.DepartmentDto;
 import com.acd.researchrepo.mapper.DepartmentMapper;
 import com.acd.researchrepo.model.Department;
 import com.acd.researchrepo.repository.DepartmentRepository;

@@ -2,9 +2,9 @@ package com.acd.researchrepo.controller;
 
 import java.util.List;
 
-import com.acd.researchrepo.dto.external.auth.DepartmentDto;
 import com.acd.researchrepo.dto.external.filters.DepartmentListResponse;
 import com.acd.researchrepo.dto.external.filters.YearListResponse;
+import com.acd.researchrepo.dto.external.model.DepartmentDto;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.DepartmentService;
 import com.acd.researchrepo.service.ResearchPaperService;

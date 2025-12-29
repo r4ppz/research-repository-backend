@@ -1,8 +1,7 @@
-package com.acd.researchrepo.dto.external.requests;
+package com.acd.researchrepo.dto.external.model;
 
 import java.time.LocalDateTime;
 
-import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
 import com.acd.researchrepo.model.RequestStatus;
 
 import lombok.Builder;

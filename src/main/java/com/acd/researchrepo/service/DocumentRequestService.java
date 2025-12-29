@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
 import com.acd.researchrepo.dto.external.requests.CreateRequestRequest;
 import com.acd.researchrepo.dto.external.requests.CreateRequestResponse;
-import com.acd.researchrepo.dto.external.requests.UserDocumentRequestDto;
 import com.acd.researchrepo.dto.external.requests.UserDocumentRequestsResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;

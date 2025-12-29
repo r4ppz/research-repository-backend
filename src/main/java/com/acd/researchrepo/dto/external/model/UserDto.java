@@ -1,4 +1,4 @@
-package com.acd.researchrepo.dto.external.auth;
+package com.acd.researchrepo.dto.external.model;
 
 import com.acd.researchrepo.model.UserRole;
 
