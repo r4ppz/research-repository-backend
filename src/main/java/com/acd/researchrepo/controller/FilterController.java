@@ -7,6 +7,7 @@ import com.acd.researchrepo.dto.external.filters.DepartmentListResponse;
 import com.acd.researchrepo.dto.external.filters.YearListResponse;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.DepartmentYearService;
+import com.acd.researchrepo.service.ResearchPaperService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,9 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 public class FilterController {
 
     private final DepartmentYearService departmentYearService;
+    private final ResearchPaperService researchPaperService;
 
-    public FilterController(DepartmentYearService departmentYearService) {
+    public FilterController(DepartmentYearService departmentYearService, ResearchPaperService researchPaperService) {
         this.departmentYearService = departmentYearService;
+        this.researchPaperService = researchPaperService;
     }
 
     @GetMapping("/years")
@@ -32,7 +35,7 @@ public class FilterController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         log.debug("api/filters/years endpoint hit!!");
 
-        List<Integer> years = departmentYearService.getAvailableYears(userPrincipal);
+        List<Integer> years = researchPaperService.getAvailableYears(userPrincipal);
 
         if (years.isEmpty()) {
             return ResponseEntity.noContent().build();
