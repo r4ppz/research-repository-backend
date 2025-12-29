@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.acd.researchrepo.dto.external.requests.CreateRequestRequestDto;
-import com.acd.researchrepo.dto.external.requests.CreateRequestResponseDto;
+import com.acd.researchrepo.dto.external.requests.CreateRequestRequest;
+import com.acd.researchrepo.dto.external.requests.CreateRequestResponse;
 import com.acd.researchrepo.dto.external.requests.UserDocumentRequestDto;
 import com.acd.researchrepo.dto.external.requests.UserDocumentRequestsResponse;
 import com.acd.researchrepo.exception.ApiException;
@@ -56,7 +56,7 @@ public class DocumentRequestService {
     }
 
     @Transactional
-    public CreateRequestResponseDto createRequest(CreateRequestRequestDto requestDto,
+    public CreateRequestResponse createRequest(CreateRequestRequest requestDto,
             CustomUserPrincipal userPrincipal) {
         // Check if user is STUDENT or TEACHER
         if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
@@ -89,7 +89,7 @@ public class DocumentRequestService {
 
         DocumentRequest savedRequest = documentRequestRepository.save(newRequest);
 
-        return CreateRequestResponseDto.builder()
+        return CreateRequestResponse.builder()
                 .requestId(savedRequest.getRequestId())
                 .build();
     }
