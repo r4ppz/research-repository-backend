@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.acd.researchrepo.dto.external.papers.PaginatedResponseDto;
-import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
+import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
+import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
@@ -34,7 +34,7 @@ public class ResearchPaperService {
         this.researchPaperMapper = researchPaperMapper;
     }
 
-    public PaginatedResponseDto<ResearchPaperDto> getPapers(
+    public PaginatedResponse<ResearchPaperDto> getPapers(
             String searchTerm,
             String departmentIds,
             String years,
@@ -72,7 +72,7 @@ public class ResearchPaperService {
                 .map(researchPaperMapper::toDto)
                 .collect(Collectors.toList());
 
-        return PaginatedResponseDto.<ResearchPaperDto>builder()
+        return PaginatedResponse.<ResearchPaperDto>builder()
                 .content(researchPaperDtos)
                 .totalElements((int) paperPage.getTotalElements())
                 .totalPages(paperPage.getTotalPages())

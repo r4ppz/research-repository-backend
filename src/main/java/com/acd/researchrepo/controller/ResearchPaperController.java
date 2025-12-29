@@ -1,7 +1,7 @@
 package com.acd.researchrepo.controller;
 
-import com.acd.researchrepo.dto.external.papers.PaginatedResponseDto;
-import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
+import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
+import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.security.CustomUserPrincipal;
@@ -28,7 +28,7 @@ public class ResearchPaperController {
     }
 
     @GetMapping
-    public ResponseEntity<PaginatedResponseDto<ResearchPaperDto>> listPapers(
+    public ResponseEntity<PaginatedResponse<ResearchPaperDto>> listPapers(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "departmentId", required = false) String departmentId,
             @RequestParam(value = "year", required = false) String years,

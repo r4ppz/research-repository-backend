@@ -1,7 +1,7 @@
 package com.acd.researchrepo.mapper;
 
-import com.acd.researchrepo.dto.external.papers.ResearchPaperDto;
-import com.acd.researchrepo.dto.external.requests.UserDocumentRequestDto;
+import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
+import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
 import com.acd.researchrepo.model.DocumentRequest;
 
 import org.springframework.stereotype.Component;

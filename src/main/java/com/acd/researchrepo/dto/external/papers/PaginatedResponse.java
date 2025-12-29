@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class PaginatedResponseDto<T> {
+public class PaginatedResponse<T> {
     private List<T> content;
     private int totalElements;
     private int totalPages;

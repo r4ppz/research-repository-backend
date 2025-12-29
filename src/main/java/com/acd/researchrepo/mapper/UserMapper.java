@@ -1,6 +1,6 @@
 package com.acd.researchrepo.mapper;
 
-import com.acd.researchrepo.dto.external.auth.UserDto;
+import com.acd.researchrepo.dto.external.model.UserDto;
 import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.model.UserRole;
 
