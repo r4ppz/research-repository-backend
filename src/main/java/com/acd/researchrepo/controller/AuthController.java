@@ -7,9 +7,7 @@ import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.RefreshResult;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
-import com.acd.researchrepo.repository.UserRepository;
 import com.acd.researchrepo.service.AuthService;
-import com.acd.researchrepo.service.JwtService;
 import com.acd.researchrepo.util.CookieUtil;
 
 import org.springframework.http.ResponseEntity;
@@ -32,11 +30,7 @@ public class AuthController {
     private final AuthService authService;
     private final CookieUtil cookieUtil;
 
-    public AuthController(
-            AuthService authService,
-            JwtService jwtService,
-            UserRepository userRepository,
-            CookieUtil cookieUtil) {
+    public AuthController(AuthService authService, CookieUtil cookieUtil) {
         this.authService = authService;
         this.cookieUtil = cookieUtil;
     }
@@ -47,14 +41,13 @@ public class AuthController {
             HttpServletResponse response) {
         log.debug("api/auth/google endpoint hit!!");
 
-        AuthTokenContainer authContainer = authService.authenticateWithGoogle(request.getCode());
-        AuthResponse authResponse = AuthResponse
-                .builder()
-                .accessToken(authContainer.getAccessToken())
-                .user(authContainer.getUser())
+        AuthTokenContainer tokens = authService.authenticateWithGoogle(request.getCode());
+        AuthResponse authResponse = AuthResponse.builder()
+                .accessToken(tokens.getAccessToken())
+                .user(tokens.getUser())
                 .build();
 
-        cookieUtil.setRefreshTokenCookie(response, authContainer.getRefreshToken());
+        cookieUtil.setRefreshTokenCookie(response, tokens.getRefreshToken());
         return ResponseEntity.ok(authResponse);
     }
 
@@ -70,12 +63,11 @@ public class AuthController {
         }
 
         try {
-            RefreshResult refreshResult = authService.refreshAccessToken(refreshToken);
-            cookieUtil.setRefreshTokenCookie(response, refreshResult.getRefreshToken());
+            RefreshResult result = authService.refreshAccessToken(refreshToken);
+            cookieUtil.setRefreshTokenCookie(response, result.getRefreshToken());
 
-            RefreshResponse refreshResponse = RefreshResponse
-                    .builder()
-                    .accessToken(refreshResult.getAccessToken())
+            RefreshResponse refreshResponse = RefreshResponse.builder()
+                    .accessToken(result.getAccessToken())
                     .build();
 
             return ResponseEntity.ok(refreshResponse);
@@ -86,7 +78,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
+    public ResponseEntity<Void> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
         log.debug("api/auth/logout endpoint hit!!");
