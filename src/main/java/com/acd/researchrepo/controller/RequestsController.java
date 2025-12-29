@@ -1,7 +1,7 @@
 package com.acd.researchrepo.controller;
 
-import com.acd.researchrepo.dto.external.requests.CreateRequestRequestDto;
-import com.acd.researchrepo.dto.external.requests.CreateRequestResponseDto;
+import com.acd.researchrepo.dto.external.requests.CreateRequestRequest;
+import com.acd.researchrepo.dto.external.requests.CreateRequestResponse;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.DocumentRequestService;
 
@@ -30,12 +30,12 @@ public class RequestsController {
     }
 
     @PostMapping
-    public ResponseEntity<CreateRequestResponseDto> createRequest(
-            @Valid @RequestBody CreateRequestRequestDto requestDto,
+    public ResponseEntity<CreateRequestResponse> createRequest(
+            @Valid @RequestBody CreateRequestRequest requestDto,
             @AuthenticationPrincipal CustomUserPrincipal principal) {
         log.debug("api/requests endpoint hit!!");
 
-        CreateRequestResponseDto response = documentRequestService.createRequest(requestDto, principal);
+        CreateRequestResponse response = documentRequestService.createRequest(requestDto, principal);
         return ResponseEntity.ok(response);
     }
 
