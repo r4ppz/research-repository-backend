@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
+import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
 import com.acd.researchrepo.dto.external.requests.CreateRequestRequest;
 import com.acd.researchrepo.dto.external.requests.CreateRequestResponse;
 import com.acd.researchrepo.dto.external.requests.UserDocumentRequestsResponse;
@@ -58,12 +59,10 @@ public class DocumentRequestService {
     @Transactional
     public CreateRequestResponse createRequest(CreateRequestRequest requestDto,
             CustomUserPrincipal userPrincipal) {
-        // Check if user is STUDENT or TEACHER
         if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
         }
 
-        // Validate paperId
         if (requestDto.getPaperId() == null || requestDto.getPaperId() <= 0) {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
         }
@@ -96,12 +95,10 @@ public class DocumentRequestService {
 
     @Transactional
     public void deleteRequest(Integer requestId, CustomUserPrincipal userPrincipal) {
-        // Check if user is STUDENT or TEACHER
         if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
         }
 
-        // Validate requestId
         if (requestId == null || requestId <= 0) {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid request ID");
         }
@@ -122,5 +119,37 @@ public class DocumentRequestService {
             // Only REJECTED or PENDING requests can be deleted by the user
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Not allowed to delete this request");
         }
+    }
+
+    public PaperUserRequestResponse getUserRequestForPaper(Integer paperId, CustomUserPrincipal userPrincipal) {
+        if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
+            throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
+        }
+
+        if (paperId == null || paperId <= 0) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
+        }
+
+        Optional<ResearchPaper> paperOpt = researchPaperRepository.findById(paperId);
+        if (paperOpt.isEmpty() || paperOpt.get().getArchived()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
+        }
+
+        // Find the user's request for this paper
+        Optional<DocumentRequest> requestOpt = documentRequestRepository.findByUserIdAndPaperId(
+                userPrincipal.getUserId(), paperId);
+
+        if (requestOpt.isEmpty()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "No request found for this paper/user");
+        }
+
+        DocumentRequest request = requestOpt.get();
+
+        return PaperUserRequestResponse.builder()
+                .requestId(request.getRequestId())
+                .status(request.getStatus())
+                .createdAt(request.getCreatedAt())
+                .updatedAt(request.getUpdatedAt())
+                .build();
     }
 }

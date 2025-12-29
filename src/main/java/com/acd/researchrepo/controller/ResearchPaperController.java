@@ -2,6 +2,7 @@ package com.acd.researchrepo.controller;
 
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
+import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.security.CustomUserPrincipal;
@@ -63,5 +64,19 @@ public class ResearchPaperController {
         }
 
         return ResponseEntity.ok(researchPaperService.getPaperById(id, userPrincipal));
+    }
+
+    @GetMapping("/{id}/my-request")
+    public ResponseEntity<PaperUserRequestResponse> getUserRequestForPaper(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+        log.debug("api/papers/{}/my-request endpoint hit!!", id);
+
+        if (id == null || id <= 0) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
+        }
+
+        PaperUserRequestResponse response = researchPaperService.getUserRequestForPaper(id, userPrincipal);
+        return ResponseEntity.ok(response);
     }
 }
