@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
+import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
@@ -26,12 +27,15 @@ import org.springframework.stereotype.Service;
 public class ResearchPaperService {
     private final ResearchPaperRepository researchPaperRepository;
     private final ResearchPaperMapper researchPaperMapper;
+    private final DocumentRequestService documentRequestService;
 
     public ResearchPaperService(
             ResearchPaperRepository researchPaperRepository,
-            ResearchPaperMapper researchPaperMapper) {
+            ResearchPaperMapper researchPaperMapper,
+            DocumentRequestService documentRequestService) {
         this.researchPaperRepository = researchPaperRepository;
         this.researchPaperMapper = researchPaperMapper;
+        this.documentRequestService = documentRequestService;
     }
 
     public PaginatedResponse<ResearchPaperDto> getPapers(
@@ -130,5 +134,9 @@ public class ResearchPaperService {
                 .distinct()
                 .sorted(java.util.Comparator.reverseOrder())
                 .collect(Collectors.toList());
+    }
+
+    public PaperUserRequestResponse getUserRequestForPaper(Integer paperId, CustomUserPrincipal userPrincipal) {
+        return documentRequestService.getUserRequestForPaper(paperId, userPrincipal);
     }
 }

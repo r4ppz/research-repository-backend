@@ -20,4 +20,7 @@ public interface DocumentRequestRepository extends JpaRepository<DocumentRequest
 
     @Query("SELECT dr FROM DocumentRequest dr WHERE dr.requestId = :requestId AND dr.user.userId = :userId")
     Optional<DocumentRequest> findByIdAndUserId(@Param("requestId") Integer requestId, @Param("userId") Integer userId);
+
+    @Query("SELECT dr FROM DocumentRequest dr WHERE dr.user.userId = :userId AND dr.paper.paperId = :paperId")
+    Optional<DocumentRequest> findByUserIdAndPaperId(@Param("userId") Integer userId, @Param("paperId") Integer paperId);
 }
