@@ -49,10 +49,6 @@ public class ResearchPaperService {
             int size,
             CustomUserPrincipal userPrincipal) {
 
-        if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
-            departmentIds = String.valueOf(userPrincipal.getDepartmentId());
-        }
-
         if (RoleBasedAccess.isUserStudent(userPrincipal)) {
             archived = false;
         }
