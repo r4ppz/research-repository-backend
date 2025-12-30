@@ -101,14 +101,6 @@ public class ResearchPaperService {
         return researchPaperMapper.toDto(paper);
     }
 
-    private String allowedSortBy(String sortBy) {
-        if ("title".equalsIgnoreCase(sortBy))
-            return "title";
-        if ("authorName".equalsIgnoreCase(sortBy))
-            return "authorName";
-        return "submissionDate";
-    }
-
     public List<Integer> getAvailableYears(CustomUserPrincipal user) {
         List<ResearchPaper> papers;
 
@@ -138,5 +130,13 @@ public class ResearchPaperService {
 
     public PaperUserRequestResponse getUserRequestForPaper(Integer paperId, CustomUserPrincipal userPrincipal) {
         return documentRequestService.getUserRequestForPaper(paperId, userPrincipal);
+    }
+
+    private String allowedSortBy(String sortBy) {
+        if ("title".equalsIgnoreCase(sortBy))
+            return "title";
+        if ("authorName".equalsIgnoreCase(sortBy))
+            return "authorName";
+        return "submissionDate";
     }
 }

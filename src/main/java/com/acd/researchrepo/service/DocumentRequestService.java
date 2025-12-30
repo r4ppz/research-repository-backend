@@ -85,20 +85,17 @@ public class DocumentRequestService {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
         }
 
-        // Check if paper exists and is not archived
         Optional<ResearchPaper> paperOpt = researchPaperRepository.findById(requestDto.getPaperId());
         if (paperOpt.isEmpty() || paperOpt.get().getArchived()) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
         }
 
-        // Check if user already has a PENDING or ACCEPTED request for this paper
         List<DocumentRequest> existingActiveRequests = documentRequestRepository
                 .findByUserIdAndPaperIdAndActiveStatus(userPrincipal.getUserId(), requestDto.getPaperId());
         if (!existingActiveRequests.isEmpty()) {
             throw new ApiException(ErrorCode.DUPLICATE_REQUEST, "Duplicate active request exists");
         }
 
-        // Create new request
         DocumentRequest newRequest = new DocumentRequest();
         newRequest.setUser(userPrincipal.getUser());
         newRequest.setPaper(paperOpt.get());
@@ -121,7 +118,6 @@ public class DocumentRequestService {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid request ID");
         }
 
-        // Find the request and check if it belongs to the user
         Optional<DocumentRequest> requestOpt = documentRequestRepository.findByIdAndUserId(requestId,
                 userPrincipal.getUserId());
         if (requestOpt.isEmpty()) {
@@ -130,11 +126,9 @@ public class DocumentRequestService {
 
         DocumentRequest request = requestOpt.get();
 
-        // Check if the request can be deleted (REJECTED or PENDING)
         if (request.getStatus() == RequestStatus.REJECTED || request.getStatus() == RequestStatus.PENDING) {
             documentRequestRepository.delete(request);
         } else {
-            // Only REJECTED or PENDING requests can be deleted by the user
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Not allowed to delete this request");
         }
     }
@@ -175,38 +169,33 @@ public class DocumentRequestService {
             Integer departmentId, Integer userDepartmentId, List<RequestStatus> statuses,
             int page, int size, String sortBy, String sortOrder, CustomUserPrincipal principal) {
 
-        // Validate user role
         if (!RoleBasedAccess.isUserAdmin(principal)) {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
         }
 
-        // Determine which department to filter by
         Integer filterDepartmentId = null;
         if (RoleBasedAccess.isUserSuperAdmin(principal)) {
-            // SUPER_ADMIN can filter by any department, or see all if no filter provided
             filterDepartmentId = departmentId;
         } else if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
-            // DEPARTMENT_ADMIN can only see their own department
             filterDepartmentId = userDepartmentId;
         }
 
-        // Create Pageable with sorting
         Sort sort = createSort(sortBy, sortOrder);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Create specification for filtering
-        Specification<DocumentRequest> spec = DocumentRequestSpec.adminRequestFilter(
-                filterDepartmentId, statuses);
+        Specification<DocumentRequest> spec = DocumentRequestSpec
+                .adminRequestFilter(filterDepartmentId, statuses);
 
-        // Get the requests based on filters
         Page<DocumentRequest> requestPage = documentRequestRepository.findAll(spec, pageable);
 
-        // Map to DTOs
-        List<AdminRequestDetailResponse> content = requestPage.getContent().stream()
+        List<AdminRequestDetailResponse> content = requestPage
+                .getContent()
+                .stream()
                 .map(this::mapToAdminRequestDetailResponse)
                 .collect(Collectors.toList());
 
-        return AdminRequestsPaginatedResponse.builder()
+        return AdminRequestsPaginatedResponse
+                .builder()
                 .content(content)
                 .totalElements((int) requestPage.getTotalElements())
                 .totalPages(requestPage.getTotalPages())
@@ -216,11 +205,11 @@ public class DocumentRequestService {
     }
 
     private AdminRequestDetailResponse mapToAdminRequestDetailResponse(DocumentRequest request) {
-        // Map the paper and user using existing mappers
         ResearchPaperDto paperDto = researchPaperMapper.toDto(request.getPaper());
         UserDto userDto = userMapper.toDto(request.getUser());
 
-        return AdminRequestDetailResponse.builder()
+        return AdminRequestDetailResponse
+                .builder()
                 .requestId(request.getRequestId())
                 .status(request.getStatus())
                 .createdAt(request.getCreatedAt())
