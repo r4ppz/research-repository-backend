@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.acd.researchrepo.dto.internal.AuthTokenContainer;
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
 import com.acd.researchrepo.dto.internal.RefreshResult;
+import com.acd.researchrepo.environment.AppProperties;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
@@ -13,7 +14,6 @@ import com.acd.researchrepo.model.RefreshToken;
 import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.repository.RefreshTokenRepository;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,26 +23,30 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthService {
 
-    @Value("${app.refresh-token.max-age:2592000}")
-    private int refreshTokenMaxAge;
+    private final int refreshTokenMaxAge;
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final GoogleAuthService googleAuthService;
     private final UserMapper userMapper;
     private final UserService userService;
+    private final AppProperties appProperties;
 
     public AuthService(
             RefreshTokenRepository refreshTokenRepository,
             JwtService jwtService,
             GoogleAuthService googleAuthService,
             UserMapper userMapper,
-            UserService userService) {
+            UserService userService,
+            AppProperties appProperties) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtService = jwtService;
         this.googleAuthService = googleAuthService;
         this.userMapper = userMapper;
         this.userService = userService;
+        this.appProperties = appProperties;
+
+        this.refreshTokenMaxAge = this.appProperties.getToken().getRefreshTokenMaxAge();
     }
 
     @Transactional

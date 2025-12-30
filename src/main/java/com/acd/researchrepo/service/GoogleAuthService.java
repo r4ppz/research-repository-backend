@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
+import com.acd.researchrepo.environment.AppProperties;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -21,31 +22,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class GoogleAuthService {
 
-    @Value("${app.google.client-id}")
-    private String googleClientId;
-
-    @Value("${app.google.client-secret}")
-    private String googleClientSecret;
-
-    @Value("${app.google.redirect-uri}")
-    private String redirectUri;
-
     @Value("${spring.profiles.active}")
     private String environment;
+    private String googleClientId;
+    private String googleClientSecret;
+    private String redirectUri;
 
     private final GoogleAuthorizationCodeFlow authorizationFlow;
     private final GoogleIdTokenVerifier idTokenVerifier;
+    private final AppProperties appProperties;
 
-    public GoogleAuthService(
-            @Value("${app.google.client-id}") String googleClientId,
-            @Value("${app.google.client-secret}") String googleClientSecret,
-            @Value("${app.google.redirect-uri}") String redirectUri,
-            @Value("${spring.profiles.active}") String environment) {
-
-        this.googleClientId = googleClientId;
-        this.googleClientSecret = googleClientSecret;
-        this.redirectUri = redirectUri;
-        this.environment = environment;
+    public GoogleAuthService(AppProperties appProperties) {
+        this.appProperties = appProperties;
+        this.googleClientId = this.appProperties.getGoogle().getClientId();
+        this.googleClientSecret = this.appProperties.getGoogle().getClientSecret();
+        this.redirectUri = this.appProperties.getGoogle().getRedirectUri();
 
         NetHttpTransport transport = new NetHttpTransport();
         GsonFactory jsonFactory = new GsonFactory();
