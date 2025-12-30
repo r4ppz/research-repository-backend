@@ -1,3 +1,0 @@
--- INSERT INTO document_requests (user_id, paper_id, status, request_date, created_at, updated_at)
--- VALUES
---   (1, 1, 'REJECTED', NOW(), NOW(), NOW());

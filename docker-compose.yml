@@ -50,5 +50,8 @@ services:
     ports:
       - "8080:8080"
 
+    volumes:
+      - ${PRIVILEGED_USERS_YAML_PATH}:/app/config/privileged-users.yaml
+
 volumes:
   pgdata:

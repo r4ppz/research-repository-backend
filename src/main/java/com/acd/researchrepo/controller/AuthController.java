@@ -42,7 +42,8 @@ public class AuthController {
         log.debug("api/auth/google endpoint hit");
 
         AuthTokenContainer tokens = authService.authenticateWithGoogle(request.getCode());
-        AuthResponse authResponse = AuthResponse.builder()
+        AuthResponse authResponse = AuthResponse
+                .builder()
                 .accessToken(tokens.getAccessToken())
                 .user(tokens.getUser())
                 .build();
@@ -66,7 +67,8 @@ public class AuthController {
             RefreshResult result = authService.refreshAccessToken(refreshToken);
             cookieUtil.setRefreshTokenCookie(response, result.getRefreshToken());
 
-            RefreshResponse refreshResponse = RefreshResponse.builder()
+            RefreshResponse refreshResponse = RefreshResponse
+                    .builder()
                     .accessToken(result.getAccessToken())
                     .build();
 

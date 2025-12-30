@@ -11,9 +11,7 @@ import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.model.RefreshToken;
 import com.acd.researchrepo.model.User;
-import com.acd.researchrepo.model.UserRole;
 import com.acd.researchrepo.repository.RefreshTokenRepository;
-import com.acd.researchrepo.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,30 +26,30 @@ public class AuthService {
     @Value("${app.refresh-token.max-age:2592000}")
     private int refreshTokenMaxAge;
 
-    private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final GoogleAuthService googleAuthService;
     private final UserMapper userMapper;
+    private final UserService userService;
 
     public AuthService(
-            UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
             JwtService jwtService,
             GoogleAuthService googleAuthService,
-            UserMapper userMapper) {
-        this.userRepository = userRepository;
+            UserMapper userMapper,
+            UserService userService) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtService = jwtService;
         this.googleAuthService = googleAuthService;
         this.userMapper = userMapper;
+        this.userService = userService;
     }
 
     @Transactional
     public AuthTokenContainer authenticateWithGoogle(String googleAuthCode) {
         GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
 
-        User user = findOrCreateUser(googleUserInfo);
+        User user = userService.findOrCreateUser(googleUserInfo);
         RefreshToken newRefresh = createRefreshToken(user);
         String accessToken = jwtService.generateAccessToken(user);
 
@@ -87,22 +85,6 @@ public class AuthService {
     }
 
     @Transactional
-    private User findOrCreateUser(GoogleUserInfo googleInfo) {
-        return userRepository.findByEmail(googleInfo.getEmail())
-                .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .email(googleInfo.getEmail())
-                            .fullName(googleInfo.getName())
-                            .role(UserRole.STUDENT)
-                            .department(null)
-                            .build();
-
-                    User saved = userRepository.save(newUser);
-                    return saved;
-                });
-    }
-
-    @Transactional
     public void revokeRefreshToken(String refreshTokenValue) {
         refreshTokenRepository.findByToken(refreshTokenValue)
                 .ifPresent(refreshTokenRepository::delete);
@@ -112,7 +94,7 @@ public class AuthService {
     private RefreshToken createRefreshToken(User user) {
         LocalDateTime now = LocalDateTime.now();
 
-        refreshTokenRepository.deleteExpiredByUserId(user.getUserId(), now);
+        refreshTokenRepository.deleteByUserId(user.getUserId());
 
         RefreshToken token = new RefreshToken();
         token.setUser(user);

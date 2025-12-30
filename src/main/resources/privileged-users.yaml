@@ -1,0 +1,16 @@
+# FORMAT MUST FOLLOW:
+#
+# super_admins:
+#   - superadmin@gmail.com
+#
+# teachers:
+#   - teacher@acdeducation.com.
+#
+# department_admins:
+#   - email: departmentadmin@acdeducation.com
+#     department_id: 1
+#   - email: departmentadmin@acdeducation.com
+#     department_id: 3
+
+super_admins:
+  - johnreyrabosa.f@gmail.com
