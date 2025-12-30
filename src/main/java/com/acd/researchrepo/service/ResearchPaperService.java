@@ -49,13 +49,12 @@ public class ResearchPaperService {
             int size,
             CustomUserPrincipal userPrincipal) {
 
-        if (RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
-            archived = false;
-        }
-
-        // For department admins, override the departmentIds with their own department
         if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
             departmentIds = String.valueOf(userPrincipal.getDepartmentId());
+        }
+
+        if (RoleBasedAccess.isUserStudent(userPrincipal)) {
+            archived = false;
         }
 
         // Sanitize sortBy and sortOrder against allowed fields

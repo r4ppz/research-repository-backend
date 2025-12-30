@@ -14,3 +14,7 @@
 
 super_admins:
   - johnreyrabosa.f@gmail.com
+
+department_admins:
+  - email: johnreyrabosa18@gmail.com
+    department_id: 1
