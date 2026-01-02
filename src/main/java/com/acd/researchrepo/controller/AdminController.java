@@ -2,7 +2,8 @@ package com.acd.researchrepo.controller;
 
 import java.util.List;
 
-import com.acd.researchrepo.dto.external.requests.AdminRequestsPaginatedResponse;
+import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
+import com.acd.researchrepo.dto.external.requests.AdminRequestDetailResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.model.RequestStatus;
@@ -31,7 +32,7 @@ public class AdminController {
     }
 
     @GetMapping
-    public ResponseEntity<AdminRequestsPaginatedResponse> getAdminRequests(
+    public ResponseEntity<PaginatedResponse<AdminRequestDetailResponse>> getAdminRequests(
             @RequestParam(value = "departmentId", required = false) String departmentIdStr,
             @RequestParam(value = "status", required = false) String statusStr,
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
@@ -50,7 +51,7 @@ public class AdminController {
 
         Integer userDepartmentId = getUserDepartmentIdIfDepartmentAdmin(principal);
 
-        AdminRequestsPaginatedResponse response = documentRequestService.getAdminRequests(
+        PaginatedResponse<AdminRequestDetailResponse> response = documentRequestService.getAdminRequests(
                 departmentId, userDepartmentId, statuses, page, size, sortBy, sortOrder, principal);
 
         return ResponseEntity.ok(response);

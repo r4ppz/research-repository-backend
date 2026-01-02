@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
 import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
 import com.acd.researchrepo.dto.external.model.UserDto;
+import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
 import com.acd.researchrepo.dto.external.requests.AdminRequestDetailResponse;
-import com.acd.researchrepo.dto.external.requests.AdminRequestsPaginatedResponse;
 import com.acd.researchrepo.dto.external.requests.CreateRequestRequest;
 import com.acd.researchrepo.dto.external.requests.CreateRequestResponse;
 import com.acd.researchrepo.dto.external.requests.UserDocumentRequestsResponse;
@@ -165,7 +165,7 @@ public class DocumentRequestService {
                 .build();
     }
 
-    public AdminRequestsPaginatedResponse getAdminRequests(
+    public PaginatedResponse<AdminRequestDetailResponse> getAdminRequests(
             Integer departmentId, Integer userDepartmentId, List<RequestStatus> statuses,
             int page, int size, String sortBy, String sortOrder, CustomUserPrincipal principal) {
 
@@ -194,8 +194,7 @@ public class DocumentRequestService {
                 .map(this::mapToAdminRequestDetailResponse)
                 .collect(Collectors.toList());
 
-        return AdminRequestsPaginatedResponse
-                .builder()
+        return PaginatedResponse.<AdminRequestDetailResponse>builder()
                 .content(content)
                 .totalElements((int) requestPage.getTotalElements())
                 .totalPages(requestPage.getTotalPages())
