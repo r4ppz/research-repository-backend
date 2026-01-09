@@ -36,7 +36,8 @@ public class SecurityConfig {
     private final List<String> allowedOrigins;
     private final String jwtSecret;
 
-    public SecurityConfig(AppProperties appProperties,
+    public SecurityConfig(
+            AppProperties appProperties,
             CustomJwtAuthConverter customJwtAuthConverter) {
         this.appProperties = appProperties;
         this.customJwtAuthConverter = customJwtAuthConverter;
@@ -54,7 +55,8 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sessionManagement())
                 .oauth2ResourceServer(oauth2ResourceServer())
@@ -67,7 +69,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "X-Requested-With"));
+        config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
