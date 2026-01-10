@@ -37,6 +37,12 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(this.jwtSecret.getBytes());
     }
 
+    /**
+     * Generates a JWT access token for the specified user.
+     *
+     * @param user the user for whom to generate the token
+     * @return a signed JWT access token as a String
+     */
     public String generateAccessToken(@NotNull User user) {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(accessTokenExpirySeconds);
