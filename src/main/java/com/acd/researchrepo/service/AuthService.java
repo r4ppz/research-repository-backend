@@ -49,6 +49,15 @@ public class AuthService {
         this.refreshTokenMaxAge = this.appProperties.getToken().getRefreshTokenMaxAge();
     }
 
+    /**
+     * Authenticates a user using a Google authorization code.
+     * Validates the code, retrieves or creates the user, generates new tokens, and
+     * returns authentication data.
+     *
+     * @param googleAuthCode the Google authorization code to validate
+     * @return AuthTokenContainer containing access token, refresh token, and user
+     *         info
+     */
     @Transactional
     public AuthTokenContainer authenticateWithGoogle(String googleAuthCode) {
         GoogleUserInfo googleUserInfo = googleAuthService.validateCodeAndGetUserInfo(googleAuthCode);
@@ -64,6 +73,18 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Refreshes the access token using the provided refresh token value.
+     * <p>
+     * Validates the refresh token, deletes the old token, issues a new refresh
+     * token,
+     * and generates a new access token for the associated user.
+     * </p>
+     *
+     * @param refreshTokenValue the value of the refresh token to use for refreshing
+     * @return a {@link RefreshResult} containing the new access and refresh tokens
+     * @throws ApiException if the refresh token is revoked or expired
+     */
     @Transactional
     public RefreshResult refreshAccessToken(String refreshTokenValue) {
         LocalDateTime now = LocalDateTime.now();
@@ -88,12 +109,24 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Revokes (deletes) the refresh token if it exists in the repository.
+     *
+     * @param refreshTokenValue the value of the refresh token to revoke
+     */
     @Transactional
     public void revokeRefreshToken(String refreshTokenValue) {
         refreshTokenRepository.findByToken(refreshTokenValue)
                 .ifPresent(refreshTokenRepository::delete);
     }
 
+    /**
+     * Creates and saves a new refresh token for the specified user.
+     * Deletes any existing refresh tokens for the user before creating a new one.
+     *
+     * @param user the user for whom the refresh token is created
+     * @return the newly created and saved RefreshToken
+     */
     @Transactional
     private RefreshToken createRefreshToken(User user) {
         LocalDateTime now = LocalDateTime.now();

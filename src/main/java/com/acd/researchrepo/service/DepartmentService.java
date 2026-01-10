@@ -30,6 +30,13 @@ public class DepartmentService {
         this.departmentMapper = departmentMapper;
     }
 
+    /**
+     * Retrieves a list of departments that have at least one associated research
+     * paper.
+     *
+     * @param user the authenticated user requesting the departments
+     * @return a list of DepartmentDto objects
+     */
     public List<DepartmentDto> getAvailableDepartments(CustomUserPrincipal user) {
         List<Department> departments;
 
