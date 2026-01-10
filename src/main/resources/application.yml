@@ -30,7 +30,11 @@ server:
 
 logging:
   level:
+    root: INFO
     com.acd.researchrepo: DEBUG
+  pattern:
+    level: "%5p [Trace: %X{traceId}]"
+    console: "%d{yyyy-MM-dd HH:mm:ss} %5p [Trace: %X{traceId}] --- [%thread] %-40.40logger{39} : %m%n"
 
 # Application configuration
 app:
