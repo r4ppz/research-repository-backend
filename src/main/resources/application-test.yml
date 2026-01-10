@@ -1,0 +1,42 @@
+spring:
+  # Use a local H2 or a temporary Postgres for testing
+  datasource:
+    url: jdbc:postgresql://localhost:5432/research-repo-db
+    username: testing
+    password: testing
+
+  # Ensure flyway runs on the test database
+  flyway:
+    enabled: true
+    locations: classpath:db/migration,classpath:db/dev
+
+  security:
+    user:
+      name: test-user
+      password: test-password
+
+# Dummy App Config for CI to pass
+app:
+  google:
+    client-id: "test-client-id.apps.googleusercontent.com"
+    client-secret: "test-client-secret"
+    redirect-uri: "postmessage"
+  jwt:
+    # This must be a valid Base64 string for the parser not to crash
+    secret: "emVyb2JveS10ZXN0LXNlY3JldC1rZXktZ2VuZXJhdGVkLWZvci1jaS1vbmx5"
+    access-token-expiry: 3600
+  token:
+    refresh-token-cookie-name: refreshToken
+    refresh-token-max-age: 2592000
+  cors:
+    allowed-origins: "http://localhost:5173"
+    allowed-methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+    allowed-headers: "*"
+    allow-credentials: true
+
+# Path for the privileged users file during tests
+fixed:
+  privileged:
+    users:
+      yaml:
+        path: "src/main/resources/privileged-users.yaml"
