@@ -1,4 +1,4 @@
-package com.acd.researchrepo.controller;
+package com.acd.researchrepo.controller.admin;
 
 import java.util.List;
 
@@ -23,11 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping("/api/admin/requests")
-public class AdminController {
+public class AdminRequestController {
 
     private final DocumentRequestService documentRequestService;
 
-    public AdminController(DocumentRequestService documentRequestService) {
+    public AdminRequestController(DocumentRequestService documentRequestService) {
         this.documentRequestService = documentRequestService;
     }
 

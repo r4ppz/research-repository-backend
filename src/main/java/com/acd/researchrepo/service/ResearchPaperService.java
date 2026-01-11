@@ -127,11 +127,66 @@ public class ResearchPaperService {
         return documentRequestService.getUserRequestForPaper(paperId, userPrincipal);
     }
 
+    public PaginatedResponse<ResearchPaperDto> getAdminPapers(
+            String searchTerm,
+            String departmentIds,
+            String years,
+            String sortBy,
+            String sortOrder,
+            int page,
+            int size,
+            CustomUserPrincipal userPrincipal) {
+
+        // For admin access, we include archived papers
+        // null means include both archived and non-archived
+        Boolean archived = null;
+
+        // Sanitize sortBy and sortOrder against allowed fields
+        Sort sort = Sort.by((sortOrder != null && sortOrder.equalsIgnoreCase("asc"))
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC, allowedSortByForAdmin(sortBy));
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Specification<ResearchPaper> spec = ResearchPaperSpec
+                .build(searchTerm, departmentIds, years, archived);
+
+        Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
+
+        List<ResearchPaperDto> researchPaperDtos = paperPage
+                .getContent()
+                .stream()
+                .map(researchPaperMapper::toDto)
+                .collect(Collectors.toList());
+
+        return PaginatedResponse.<ResearchPaperDto>builder()
+                .content(researchPaperDtos)
+                .totalElements((int) paperPage.getTotalElements())
+                .totalPages(paperPage.getTotalPages())
+                .number(paperPage.getNumber())
+                .size(paperPage.getSize())
+                .build();
+    }
+
     private String allowedSortBy(String sortBy) {
         if ("title".equalsIgnoreCase(sortBy))
             return "title";
         if ("authorName".equalsIgnoreCase(sortBy))
             return "authorName";
+        return "submissionDate";
+    }
+
+    private String allowedSortByForAdmin(String sortBy) {
+        if ("title".equalsIgnoreCase(sortBy))
+            return "title";
+        if ("authorName".equalsIgnoreCase(sortBy))
+            return "authorName";
+        if ("submissionDate".equalsIgnoreCase(sortBy))
+            return "submissionDate";
+        if ("createdAt".equalsIgnoreCase(sortBy))
+            return "createdAt";
+        if ("updatedAt".equalsIgnoreCase(sortBy))
+            return "updatedAt";
         return "submissionDate";
     }
 }
