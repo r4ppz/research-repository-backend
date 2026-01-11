@@ -24,9 +24,27 @@ public class DocumentRequestSpec {
         return (root, query, criteriaBuilder) -> root.get("status").in(statuses);
     }
 
+    public static Specification<DocumentRequest> hasSearchTerm(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction(); // Always true
+        }
+
+        String lowerCaseSearchTerm = "%" + searchTerm.toLowerCase().trim() + "%";
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("user").get("fullName")), lowerCaseSearchTerm),
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("user").get("email")), lowerCaseSearchTerm),
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("paper").get("title")), lowerCaseSearchTerm));
+    }
+
+    public static Specification<DocumentRequest> adminRequestFilter(
+            Integer departmentId, List<RequestStatus> statuses, String searchTerm) {
+        return Specification.where(hasDepartmentId(departmentId))
+                .and(hasStatusIn(statuses))
+                .and(hasSearchTerm(searchTerm));
+    }
+
     public static Specification<DocumentRequest> adminRequestFilter(
             Integer departmentId, List<RequestStatus> statuses) {
-        return Specification.where(hasDepartmentId(departmentId))
-                .and(hasStatusIn(statuses));
+        return adminRequestFilter(departmentId, statuses, null);
     }
 }

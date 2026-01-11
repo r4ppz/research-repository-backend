@@ -1,17 +1,20 @@
 package com.acd.researchrepo.controller;
 
+import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
 import com.acd.researchrepo.dto.external.model.UserDto;
-import com.acd.researchrepo.dto.external.requests.UserDocumentRequestsResponse;
+import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.DocumentRequestService;
+import com.acd.researchrepo.util.RoleBasedAccess;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,14 +45,25 @@ public class UsersController {
     }
 
     @GetMapping("/me/requests")
-    public ResponseEntity<UserDocumentRequestsResponse> getUserRequests(
-            @AuthenticationPrincipal CustomUserPrincipal principal) {
+    public ResponseEntity<PaginatedResponse<UserDocumentRequestDto>> getUserRequests(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "sortBy", required = false) String sortBy,
+            @RequestParam(value = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "20") int size) {
         log.debug("api/users/me/requests endpoint hit");
 
         if (principal == null) {
             throw new ApiException(ErrorCode.UNAUTHENTICATED);
         }
 
-        return ResponseEntity.ok(documentRequestService.getUserDocumentRequests(principal));
+        if (!RoleBasedAccess.isUserStudentOrTeacher(principal)) {
+            throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
+        }
+
+        return ResponseEntity.ok(documentRequestService.getUserDocumentRequests(
+                principal, status, search, sortBy, sortOrder, page, size));
     }
 }
