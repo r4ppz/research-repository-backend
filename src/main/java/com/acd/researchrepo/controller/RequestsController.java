@@ -35,7 +35,7 @@ public class RequestsController {
             @AuthenticationPrincipal CustomUserPrincipal user) {
         log.debug("api/requests endpoint hit");
         CreateRequestResponse response = requestService.createRequest(request, user);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{requestId}")

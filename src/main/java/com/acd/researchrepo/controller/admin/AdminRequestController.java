@@ -9,6 +9,7 @@ import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.model.RequestStatus;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.DocumentRequestService;
+import com.acd.researchrepo.util.RequestParamValidator;
 import com.acd.researchrepo.util.RoleBasedAccess;
 
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ public class AdminRequestController {
     public ResponseEntity<PaginatedResponse<AdminRequestDetailResponse>> getAdminRequests(
             @RequestParam(value = "departmentId", required = false) String departmentIdStr,
             @RequestParam(value = "status", required = false) String statusStr,
+            @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @RequestParam(value = "size", required = false, defaultValue = "20") int size,
             @RequestParam(value = "sortBy", required = false) String sortBy,
@@ -46,13 +48,22 @@ public class AdminRequestController {
         validateAdminAccess(principal);
         Integer departmentId = parseDepartmentId(departmentIdStr, principal);
         List<RequestStatus> statuses = parseStatuses(statusStr);
-        validatePagination(page, size);
-        validateSortParams(sortBy, sortOrder);
+        RequestParamValidator.validatePagination(page, size);
+        RequestParamValidator.validateSortParams(sortBy, sortOrder, "createdAt", "status", "paper.title",
+                "user.fullName");
 
         Integer userDepartmentId = getUserDepartmentIdIfDepartmentAdmin(principal);
 
         PaginatedResponse<AdminRequestDetailResponse> response = documentRequestService.getAdminRequests(
-                departmentId, userDepartmentId, statuses, page, size, sortBy, sortOrder, principal);
+                departmentId,
+                userDepartmentId,
+                statuses,
+                search,
+                page,
+                size,
+                sortBy,
+                sortOrder,
+                principal);
 
         return ResponseEntity.ok(response);
     }
@@ -103,26 +114,6 @@ public class AdminRequestController {
         }
     }
 
-    private void validatePagination(int page, int size) {
-        if (page < 0) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid query parameter: page must be non-negative");
-        }
-        if (size <= 0 || size > 100) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST,
-                    "Invalid query parameter: size must be between 1 and 100");
-        }
-    }
-
-    private void validateSortParams(String sortBy, String sortOrder) {
-        if (sortBy != null && !isValidSortByField(sortBy)) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid query parameter: sortBy field not allowed");
-        }
-        if (!"asc".equalsIgnoreCase(sortOrder) && !"desc".equalsIgnoreCase(sortOrder)) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST,
-                    "Invalid query parameter: sortOrder must be 'asc' or 'desc'");
-        }
-    }
-
     private Integer getUserDepartmentIdIfDepartmentAdmin(CustomUserPrincipal principal) {
         if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
             Integer userDepartmentId = principal.getDepartmentId();
@@ -132,11 +123,5 @@ public class AdminRequestController {
             return userDepartmentId;
         }
         return null;
-    }
-
-    private boolean isValidSortByField(String field) {
-        if (field == null)
-            return true;
-        return java.util.List.of("createdAt", "status", "paper.title", "userId").contains(field);
     }
 }
