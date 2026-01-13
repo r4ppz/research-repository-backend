@@ -37,10 +37,14 @@ public class DocumentRequestSpec {
     }
 
     public static Specification<DocumentRequest> adminRequestFilter(
-            Integer departmentId, List<RequestStatus> statuses, String searchTerm) {
-        return Specification.where(hasDepartmentId(departmentId))
+            Integer departmentId,
+            List<RequestStatus> statuses,
+            String searchTerm) {
+        Specification<DocumentRequest> spec = (root, query, cb) -> cb.conjunction();
+        spec = spec.and(hasDepartmentId(departmentId))
                 .and(hasStatusIn(statuses))
                 .and(hasSearchTerm(searchTerm));
+        return spec;
     }
 
     public static Specification<DocumentRequest> adminRequestFilter(
