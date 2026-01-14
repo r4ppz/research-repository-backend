@@ -22,6 +22,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "document_requests", indexes = {
@@ -53,6 +54,10 @@ public class DocumentRequest {
     @Column(name = "status", nullable = false, length = 50)
     @NotNull
     private RequestStatus status = RequestStatus.PENDING;
+
+    @Column(name = "rejection_reason", length = 255)
+    @Size(max = 255)
+    private String rejectionReason;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
