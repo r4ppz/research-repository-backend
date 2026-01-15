@@ -6,14 +6,14 @@ To maintain code quality and avoid configuration conflicts, all developers must 
 
 ### Branch Strategy
 
-We use a two-branch system. **Direct pushes to `main` and `dev` are blocked.**
+We use a two-branch system. **Direct pushes to `main` are blocked.**
 
 ```text
   main (Production)  <-- [Owner Only Merge]
     ↑
-   dev  (Development)  <-- [Shared Staging]
+   dev  (Development)  <-- [Shared Staging] (direct push is allowed for now)
     ↑
- [feature-branch]      <-- [Developer Work]
+ [feature-branch]      <-- [Developer Work] (preferred)
 
 ```
 
