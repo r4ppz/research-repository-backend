@@ -1,10 +1,10 @@
 package com.acd.researchrepo.controller;
 
+import java.util.List;
+
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
-import com.acd.researchrepo.exception.ApiException;
-import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.ResearchPaperService;
 
@@ -31,8 +31,8 @@ public class ResearchPaperController {
     @GetMapping
     public ResponseEntity<PaginatedResponse<ResearchPaperDto>> listPapers(
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "departmentId", required = false) String departmentId,
-            @RequestParam(value = "year", required = false) String years,
+            @RequestParam(value = "departmentId", required = false) List<Integer> departmentId,
+            @RequestParam(value = "year", required = false) List<Integer> years,
             @RequestParam(value = "archived", required = false) Boolean archived,
             @RequestParam(value = "sortBy", required = false) String sortBy,
             @RequestParam(value = "sortOrder", required = false) String sortOrder,
@@ -59,10 +59,6 @@ public class ResearchPaperController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         log.debug("api/papers/{} endpoint hit", id);
 
-        if (id == null || id <= 0) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
-        }
-
         return ResponseEntity.ok(researchPaperService.getPaperById(id, userPrincipal));
     }
 
@@ -71,10 +67,6 @@ public class ResearchPaperController {
             @PathVariable Integer id,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         log.debug("api/papers/{}/my-request endpoint hit", id);
-
-        if (id == null || id <= 0) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
-        }
 
         PaperUserRequestResponse response = researchPaperService.getUserRequestForPaper(id, userPrincipal);
         return ResponseEntity.ok(response);
