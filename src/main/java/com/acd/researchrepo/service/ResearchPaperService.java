@@ -205,9 +205,11 @@ public class ResearchPaperService {
         return researchPaperMapper.toDto(paper);
     }
 
-    public ResearchPaperDto createPaper(PaperCreateRequest createRequest, MultipartFile file,
+    public ResearchPaperDto createPaper(
+            PaperCreateRequest createRequest,
+            MultipartFile file,
             CustomUserPrincipal principal) {
-        // Authorization check: DEPARTMENT_ADMIN must provide their own department ID
+        // DEPARTMENT_ADMIN must provide their own department ID
         if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
             Integer userDepartmentId = principal.getDepartmentId();
             if (userDepartmentId == null) {
@@ -249,8 +251,7 @@ public class ResearchPaperService {
 
         ResearchPaper paper = paperOpt.get();
 
-        // Authorization check: DEPARTMENT_ADMIN can only update papers from their
-        // department
+        // DEPARTMENT_ADMIN can only update papers from their department
         if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
             Integer userDepartmentId = principal.getDepartmentId();
             if (userDepartmentId == null || !userDepartmentId.equals(paper.getDepartment().getDepartmentId())) {
@@ -290,14 +291,14 @@ public class ResearchPaperService {
 
     public ResearchPaperDto archivePaper(Integer id, CustomUserPrincipal principal) {
         Optional<ResearchPaper> paperOpt = researchPaperRepository.findById(id);
+
         if (paperOpt.isEmpty()) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
         }
 
         ResearchPaper paper = paperOpt.get();
 
-        // Authorization check: DEPARTMENT_ADMIN can only archive papers from their
-        // department
+        // DEPARTMENT_ADMIN can only archive papers from their department
         if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
             Integer userDepartmentId = principal.getDepartmentId();
             if (userDepartmentId == null || !userDepartmentId.equals(paper.getDepartment().getDepartmentId())) {
@@ -314,14 +315,14 @@ public class ResearchPaperService {
 
     public ResearchPaperDto unarchivePaper(Integer id, CustomUserPrincipal principal) {
         Optional<ResearchPaper> paperOpt = researchPaperRepository.findById(id);
+
         if (paperOpt.isEmpty()) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
         }
 
         ResearchPaper paper = paperOpt.get();
 
-        // Authorization check: DEPARTMENT_ADMIN can only unarchive papers from their
-        // department
+        // DEPARTMENT_ADMIN can only unarchive papers from their department
         if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
             Integer userDepartmentId = principal.getDepartmentId();
             if (userDepartmentId == null || !userDepartmentId.equals(paper.getDepartment().getDepartmentId())) {
@@ -426,5 +427,4 @@ public class ResearchPaperService {
             return "updatedAt";
         return "submissionDate";
     }
-
 }
