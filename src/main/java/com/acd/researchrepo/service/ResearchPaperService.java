@@ -1,6 +1,7 @@
 package com.acd.researchrepo.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
@@ -14,6 +15,7 @@ import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.spec.ResearchPaperSpec;
 import com.acd.researchrepo.util.RoleBasedAccess;
+import com.acd.researchrepo.util.SortUtil;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,10 +54,13 @@ public class ResearchPaperService {
             archived = false;
         }
 
-        // Sanitize sortBy and sortOrder against allowed fields
-        Sort sort = Sort.by((sortOrder != null && sortOrder.equalsIgnoreCase("asc"))
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC, allowedSortBy(sortBy));
+        // Sanitize sortBy and sortOrder against allowed fields using SortUtil
+        Map<String, String> allowedFields = Map.of(
+                "title", "title",
+                "authorName", "authorName",
+                "submissionDate", "submissionDate");
+
+        Sort sort = SortUtil.createSort(sortBy, sortOrder, allowedFields, "submissionDate");
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -91,13 +96,5 @@ public class ResearchPaperService {
 
     public PaperUserRequestResponse getUserRequestForPaper(Integer paperId, CustomUserPrincipal userPrincipal) {
         return documentRequestService.getUserRequestForPaper(paperId, userPrincipal);
-    }
-
-    private String allowedSortBy(String sortBy) {
-        if ("title".equalsIgnoreCase(sortBy))
-            return "title";
-        if ("authorName".equalsIgnoreCase(sortBy))
-            return "authorName";
-        return "submissionDate";
     }
 }

@@ -1,6 +1,7 @@
 package com.acd.researchrepo.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
@@ -20,6 +21,7 @@ import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.spec.DocumentRequestSpec;
 import com.acd.researchrepo.util.RoleBasedAccess;
+import com.acd.researchrepo.util.SortUtil;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -159,16 +161,16 @@ public class DocumentRequestService {
             int size,
             String sortBy,
             String sortOrder,
-            CustomUserPrincipal principal) {
+            CustomUserPrincipal userPrincipal) {
 
-        if (!RoleBasedAccess.isUserAdmin(principal)) {
+        if (!RoleBasedAccess.isUserAdmin(userPrincipal)) {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
         }
 
         // Determine target department
-        Integer filterDepartmentId = RoleBasedAccess.isUserSuperAdmin(principal)
+        Integer filterDepartmentId = RoleBasedAccess.isUserSuperAdmin(userPrincipal)
                 ? departmentId
-                : getUserDepartmentIdIfDepartmentAdmin(principal);
+                : getUserDepartmentIdIfDepartmentAdmin(userPrincipal);
 
         Pageable pageable = PageRequest.of(page, size, createSort(sortBy, sortOrder));
 
@@ -192,24 +194,13 @@ public class DocumentRequestService {
     }
 
     private Sort createSort(String sortBy, String sortOrder) {
-        if (sortBy == null || sortBy.trim().isEmpty()) {
-            sortBy = "createdAt"; // default
-        }
+        // Define allowed sort fields mapping
+        Map<String, String> allowedFields = Map.of(
+                "createdAt", "createdAt",
+                "status", "status",
+                "paper.title", "paper.title",
+                "userId", "user.userId");
 
-        Sort.Direction direction = "asc".equalsIgnoreCase(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
-
-        // Map the sort fields to actual entity fields
-        switch (sortBy) {
-            case "createdAt":
-                return Sort.by(direction, "createdAt");
-            case "status":
-                return Sort.by(direction, "status");
-            case "paper.title":
-                return Sort.by(direction, "paper.title");
-            case "userId":
-                return Sort.by(direction, "user.userId");
-            default:
-                return Sort.by(direction, "createdAt");
-        }
+        return SortUtil.createSort(sortBy, sortOrder, allowedFields, "createdAt");
     }
 }
