@@ -182,6 +182,83 @@ public class DocumentRequestService {
         return PaginatedResponse.fromPage(requestPage, documentRequestMapper::toAdminDto);
     }
 
+    @Transactional
+    public AdminRequestResponse acceptRequest(Integer requestId, CustomUserPrincipal userPrincipal) {
+        // Authorization: must be admin
+        if (!RoleBasedAccess.isUserAdmin(userPrincipal)) {
+            throw new ApiException(ErrorCode.ACCESS_DENIED, "Admin privileges required");
+        }
+
+        // Find the request
+        DocumentRequest request = documentRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Request not found"));
+
+        // Check if request is in PENDING status
+        if (request.getStatus() != RequestStatus.PENDING) {
+            throw new ApiException(ErrorCode.REQUEST_ALREADY_FINAL, "Request is already in a terminal state");
+        }
+
+        // Check if paper is archived
+        if (request.getPaper().getArchived()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
+        }
+
+        // For DEPARTMENT_ADMIN, verify department access
+        if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
+            Integer adminDepartmentId = userPrincipal.getDepartmentId();
+            Integer paperDepartmentId = request.getPaper().getDepartment().getDepartmentId();
+            if (!adminDepartmentId.equals(paperDepartmentId)) {
+                throw new ApiException(ErrorCode.ACCESS_DENIED,
+                        "You do not have permission to approve requests for this department");
+            }
+        }
+
+        // Update request status
+        request.setStatus(RequestStatus.ACCEPTED);
+        DocumentRequest savedRequest = documentRequestRepository.save(request);
+
+        return documentRequestMapper.toAdminDto(savedRequest);
+    }
+
+    @Transactional
+    public AdminRequestResponse rejectRequest(Integer requestId, String reason, CustomUserPrincipal userPrincipal) {
+        // Authorization: must be admin
+        if (!RoleBasedAccess.isUserAdmin(userPrincipal)) {
+            throw new ApiException(ErrorCode.ACCESS_DENIED, "Admin privileges required");
+        }
+
+        // Find the request
+        DocumentRequest request = documentRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Request not found"));
+
+        // Check if request is already REJECTED (terminal state)
+        if (request.getStatus() == RequestStatus.REJECTED) {
+            throw new ApiException(ErrorCode.REQUEST_ALREADY_FINAL, "Request is already in a terminal state");
+        }
+
+        // Check if paper is archived
+        if (request.getPaper().getArchived()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
+        }
+
+        // For DEPARTMENT_ADMIN, verify department access
+        if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
+            Integer adminDepartmentId = userPrincipal.getDepartmentId();
+            Integer paperDepartmentId = request.getPaper().getDepartment().getDepartmentId();
+            if (!adminDepartmentId.equals(paperDepartmentId)) {
+                throw new ApiException(ErrorCode.ACCESS_DENIED,
+                        "You do not have permission to reject requests for this department");
+            }
+        }
+
+        // Update request status and reason
+        request.setStatus(RequestStatus.REJECTED);
+        request.setRejectionReason(reason);
+        DocumentRequest savedRequest = documentRequestRepository.save(request);
+
+        return documentRequestMapper.toAdminDto(savedRequest);
+    }
+
     private Integer getUserDepartmentIdIfDepartmentAdmin(CustomUserPrincipal principal) {
         if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
             Integer userDepartmentId = principal.getDepartmentId();
