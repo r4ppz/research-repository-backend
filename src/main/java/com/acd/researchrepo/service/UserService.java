@@ -51,6 +51,7 @@ public class UserService {
             User newUser = User.builder()
                     .email(email)
                     .fullName(googleInfo.getName())
+                    .profilePictureUrl(googleInfo.getProfilePictureUrl())
                     .role(assignedRole)
                     .department(assignedDepartment)
                     .build();
@@ -107,6 +108,11 @@ public class UserService {
 
         if (!user.getFullName().equals(googleInfo.getName())) {
             user.setFullName(googleInfo.getName());
+            changed = true;
+        }
+
+        if (!Objects.equals(user.getProfilePictureUrl(), googleInfo.getProfilePictureUrl())) {
+            user.setProfilePictureUrl(googleInfo.getProfilePictureUrl());
             changed = true;
         }
 
