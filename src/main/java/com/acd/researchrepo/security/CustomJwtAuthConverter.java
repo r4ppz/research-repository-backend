@@ -27,10 +27,10 @@ public class CustomJwtAuthConverter implements Converter<Jwt, AbstractAuthentica
 
         // Extract departmentId from JWT and create minimal Department object
         Department department = null;
-        Long departmentIdLong = jwt.getClaim("departmentId");
-        if (departmentIdLong != null) {
+        Number departmentIdNumber = jwt.getClaim("departmentId");
+        if (departmentIdNumber != null) {
             department = new Department();
-            department.setDepartmentId(departmentIdLong.intValue());
+            department.setDepartmentId(departmentIdNumber.intValue());
         }
 
         User user = User.builder()
