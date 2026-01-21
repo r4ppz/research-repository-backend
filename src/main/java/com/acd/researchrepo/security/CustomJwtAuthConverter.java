@@ -23,6 +23,7 @@ public class CustomJwtAuthConverter implements Converter<Jwt, AbstractAuthentica
         String fullName = jwt.getClaimAsString("fullName");
         String roleString = jwt.getClaimAsString("role");
         UserRole role = roleString != null ? UserRole.valueOf(roleString) : null;
+        String profilePictureUrl = jwt.getClaimAsString("profilePictureUrl");
 
         // Extract departmentId from JWT and create minimal Department object
         Department department = null;
@@ -38,6 +39,7 @@ public class CustomJwtAuthConverter implements Converter<Jwt, AbstractAuthentica
                 .fullName(fullName)
                 .role(role)
                 .department(department)
+                .profilePictureUrl(profilePictureUrl)
                 .build();
 
         Map<String, Object> attributes = new HashMap<>(jwt.getClaims());
