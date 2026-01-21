@@ -1,7 +1,11 @@
 logging:
   level:
     com.acd.researchrepo: DEBUG
+    org.hibernate.orm.queries: trace
 
 spring:
+  jpa:
+  show-sql: true
+
   flyway:
     locations: classpath:db/migration,classpath:db/dev
