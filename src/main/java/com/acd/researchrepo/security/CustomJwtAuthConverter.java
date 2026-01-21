@@ -3,6 +3,7 @@ package com.acd.researchrepo.security;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.acd.researchrepo.model.Department;
 import com.acd.researchrepo.model.User;
 import com.acd.researchrepo.model.UserRole;
 
@@ -23,14 +24,22 @@ public class CustomJwtAuthConverter implements Converter<Jwt, AbstractAuthentica
         String roleString = jwt.getClaimAsString("role");
         UserRole role = roleString != null ? UserRole.valueOf(roleString) : null;
 
+        // Extract departmentId from JWT and create minimal Department object
+        Department department = null;
+        Long departmentIdLong = jwt.getClaim("departmentId");
+        if (departmentIdLong != null) {
+            department = new Department();
+            department.setDepartmentId(departmentIdLong.intValue());
+        }
+
         User user = User.builder()
                 .userId(userId)
                 .email(email)
                 .fullName(fullName)
                 .role(role)
+                .department(department)
                 .build();
 
-        // This might be useless
         Map<String, Object> attributes = new HashMap<>(jwt.getClaims());
 
         CustomUserPrincipal principal = new CustomUserPrincipal(user, attributes);
