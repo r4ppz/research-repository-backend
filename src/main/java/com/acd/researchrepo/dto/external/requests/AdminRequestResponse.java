@@ -14,6 +14,7 @@ import lombok.Getter;
 public class AdminRequestResponse {
     private Integer requestId;
     private RequestStatus status;
+    private String rejectionReason;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UserDto user;

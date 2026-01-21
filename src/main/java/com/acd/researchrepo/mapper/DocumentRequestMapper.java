@@ -41,6 +41,7 @@ public class DocumentRequestMapper {
         return AdminRequestResponse.builder()
                 .requestId(request.getRequestId())
                 .status(request.getStatus())
+                .rejectionReason(request.getRejectionReason())
                 .createdAt(request.getCreatedAt() != null ? request.getCreatedAt() : request.getRequestDate())
                 .updatedAt(request.getUpdatedAt() != null ? request.getUpdatedAt() : request.getRequestDate())
                 .user(userMapper.toDto(request.getUser()))
