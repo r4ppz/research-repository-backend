@@ -55,6 +55,10 @@ public class User {
     @Size(max = 255)
     private String fullName;
 
+    @Column(name = "profile_picture_url", nullable = true, length = 500)
+    @Size(max = 500)
+    private String profilePictureUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 50)
     @NotNull

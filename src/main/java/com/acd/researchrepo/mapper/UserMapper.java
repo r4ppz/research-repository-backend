@@ -29,6 +29,7 @@ public class UserMapper {
                     .fullName(user.getFullName())
                     .role(user.getRole())
                     .department(departmentMapper.toDto(user.getDepartment()))
+                    .profilePictureUrl(user.getProfilePictureUrl())
                     .build();
         } else {
             return UserDto.builder()
@@ -37,6 +38,7 @@ public class UserMapper {
                     .fullName(user.getFullName())
                     .role(user.getRole())
                     .department(null)
+                    .profilePictureUrl(user.getProfilePictureUrl())
                     .build();
 
         }
