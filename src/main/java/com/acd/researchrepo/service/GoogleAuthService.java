@@ -74,6 +74,7 @@ public class GoogleAuthService {
                 .email(email)
                 .name((String) payload.get("name"))
                 .googleId(payload.getSubject())
+                .profilePictureUrl((String) payload.get("picture"))
                 .build();
     }
 
