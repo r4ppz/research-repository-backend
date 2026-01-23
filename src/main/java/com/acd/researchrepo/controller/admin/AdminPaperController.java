@@ -3,6 +3,7 @@ package com.acd.researchrepo.controller.admin;
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.dto.external.papers.PaperCreateRequest;
+import com.acd.researchrepo.dto.external.papers.PaperUpdateRequest;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperSearchRequest;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
@@ -79,7 +80,7 @@ public class AdminPaperController {
     @PutMapping("/{id}")
     public ResponseEntity<ResearchPaperDto> updatePaper(
             @PathVariable Integer id,
-            @Valid @RequestBody PaperCreateRequest metadata,
+            @Valid @RequestBody PaperUpdateRequest metadata,
             @AuthenticationPrincipal CustomUserPrincipal principal) {
 
         log.debug("PUT /api/admin/papers/{} endpoint hit", id);
