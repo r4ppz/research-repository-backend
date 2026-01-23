@@ -28,6 +28,7 @@ public enum ErrorCode {
     // HTTP 404
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found"),
     RESOURCE_NOT_AVAILABLE(HttpStatus.NOT_FOUND, "Resource not available"),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "File not found"),
 
     // HTTP 409
     DUPLICATE_REQUEST(HttpStatus.CONFLICT, "Duplicate active request exists"),
