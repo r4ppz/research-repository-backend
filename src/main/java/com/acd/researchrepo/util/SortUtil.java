@@ -17,8 +17,12 @@ public class SortUtil {
      * @param defaultField  The default field to sort by if sortBy is null/empty
      * @return A Sort object configured with the specified parameters
      */
-    public static Sort createSort(String sortBy, String sortOrder, Map<String, String> allowedFields,
+    public static Sort createSort(
+            String sortBy,
+            String sortOrder,
+            Map<String, String> allowedFields,
             String defaultField) {
+
         if (sortBy == null || sortBy.trim().isEmpty()) {
             sortBy = defaultField;
         }

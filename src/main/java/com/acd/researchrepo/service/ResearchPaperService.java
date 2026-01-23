@@ -59,13 +59,69 @@ public class ResearchPaperService {
                 "title", "title",
                 "authorName", "authorName",
                 "submissionDate", "submissionDate");
-
         Sort sort = SortUtil.createSort(sortBy, sortOrder, allowedFields, "submissionDate");
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Specification<ResearchPaper> spec = ResearchPaperSpec
                 .build(searchTerm, departmentIds, years, archived);
+
+        Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
+
+        return PaginatedResponse.fromPage(paperPage, researchPaperMapper::toDto);
+    }
+
+    /**
+     * Get papers for admin management with department scoping.
+     * DEPARTMENT_ADMIN: only sees papers in their department (departmentIds param
+     * ignored).
+     * SUPER_ADMIN: sees all papers, can filter by departmentIds.
+     */
+    public PaginatedResponse<ResearchPaperDto> getAdminPapers(
+            String search,
+            List<Integer> departmentIds,
+            List<Integer> years,
+            Boolean archived,
+            String sortBy,
+            String sortOrder,
+            int page,
+            int size,
+            CustomUserPrincipal userPrincipal) {
+
+        // Authorization check: must be admin
+        if (!RoleBasedAccess.isUserAdmin(userPrincipal)) {
+            throw new ApiException(ErrorCode.ACCESS_DENIED, "Admin privileges required");
+        }
+
+        // Determine department filtering based on role
+        List<Integer> effectiveDepartmentIds = null;
+        if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
+            // Ignore departmentIds param, always scope to their department
+            Integer userDeptId = userPrincipal.getDepartmentId();
+            if (userDeptId == null) {
+                throw new ApiException(ErrorCode.ACCESS_DENIED, "Department admin not assigned to a department");
+            }
+            effectiveDepartmentIds = List.of(userDeptId);
+        } else {
+            // For SuperAdmin use provided departmentIds (can be null for all departments)
+            effectiveDepartmentIds = departmentIds;
+        }
+
+        // Sanitize sortBy and sortOrder against allowed fields
+        Map<String, String> allowedFields = Map.of(
+                "title", "title",
+                "authorName", "authorName",
+                "submissionDate", "submissionDate");
+
+        Sort sort = SortUtil.createSort(sortBy, sortOrder, allowedFields, "submissionDate");
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Specification<ResearchPaper> spec = ResearchPaperSpec.buildAdmin(
+                search,
+                effectiveDepartmentIds,
+                years,
+                archived);
 
         Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
 
