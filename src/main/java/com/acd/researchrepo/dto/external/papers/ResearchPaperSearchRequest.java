@@ -19,7 +19,7 @@ public class ResearchPaperSearchRequest {
 
     private String search;
     private List<Integer> departmentId;
-    private List<Integer> year;
+    private List<@Min(value = 1900, message = "Year must be at least 1900") @Max(value = 2100, message = "Year cannot exceed 2100") Integer> year;
     private Boolean archived;
 
     @Min(value = 0, message = "Page number cannot be negative")
