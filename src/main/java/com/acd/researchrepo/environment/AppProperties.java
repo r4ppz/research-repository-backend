@@ -33,6 +33,9 @@ public class AppProperties {
     @Valid
     @NotNull
     private final Cors cors;
+    @Valid
+    @NotNull
+    private final Storage storage;
 
     @Getter
     @RequiredArgsConstructor
@@ -74,5 +77,12 @@ public class AppProperties {
         @NotNull
         private final List<String> allowedHeaders;
         private final boolean allowCredentials;
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    public static class Storage {
+        @NotBlank(message = "APP_STORAGE_UPLOAD_DIR must be set.")
+        private final String uploadDir;
     }
 }

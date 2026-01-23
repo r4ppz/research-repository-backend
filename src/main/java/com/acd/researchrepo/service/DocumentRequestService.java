@@ -72,7 +72,12 @@ public class DocumentRequestService {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "Invalid paper ID");
         }
 
-        Optional<ResearchPaper> paperOpt = researchPaperRepository.findById(requestDto.getPaperId());
+        ResearchPaper paper = researchPaperRepository.findById(requestDto.getPaperId())
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found"));
+
+        if (paper.getArchived()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
+        }
 
         List<DocumentRequest> existingActiveRequests = documentRequestRepository
                 .findByUserIdAndPaperIdAndActiveStatus(userPrincipal.getUserId(), requestDto.getPaperId());
@@ -82,7 +87,7 @@ public class DocumentRequestService {
 
         DocumentRequest newRequest = new DocumentRequest();
         newRequest.setUser(userPrincipal.getUser());
-        newRequest.setPaper(paperOpt.get());
+        newRequest.setPaper(paper);
         newRequest.setStatus(RequestStatus.PENDING);
 
         DocumentRequest savedRequest = documentRequestRepository.save(newRequest);
@@ -150,6 +155,11 @@ public class DocumentRequestService {
 
         if (!RoleBasedAccess.isUserAdmin(userPrincipal)) {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
+        }
+
+        // Validation: DEPARTMENT_ADMIN cannot provide departmentId filter
+        if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal) && request.getDepartmentId() != null) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "departmentId filter not permitted for your role");
         }
 
         // Determine target department
