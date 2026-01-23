@@ -9,6 +9,8 @@ import com.acd.researchrepo.service.ResearchPaperService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,5 +39,23 @@ public class AdminPaperController {
         PaginatedResponse<ResearchPaperDto> response = researchPaperService.getAdminPapers(request, principal);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/archive")
+    public ResponseEntity<Void> archivePaper(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        log.debug("PUT /api/admin/papers/{}/archive endpoint hit", id);
+        researchPaperService.archivePaper(id, principal);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/unarchive")
+    public ResponseEntity<Void> unarchivePaper(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        log.debug("PUT /api/admin/papers/{}/unarchive endpoint hit", id);
+        researchPaperService.unarchivePaper(id, principal);
+        return ResponseEntity.ok().build();
     }
 }

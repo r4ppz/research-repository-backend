@@ -30,4 +30,7 @@ public interface DocumentRequestRepository
     Optional<DocumentRequest> findByUserIdAndPaperId(
             @Param("userId") Integer userId,
             @Param("paperId") Integer paperId);
+
+    List<DocumentRequest> findByPaperPaperIdAndStatusIn(Integer paperId,
+            List<com.acd.researchrepo.model.RequestStatus> statuses);
 }
