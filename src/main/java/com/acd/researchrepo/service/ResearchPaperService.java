@@ -1,5 +1,6 @@
 package com.acd.researchrepo.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,7 +11,10 @@ import com.acd.researchrepo.dto.external.papers.ResearchPaperSearchRequest;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
+import com.acd.researchrepo.model.DocumentRequest;
+import com.acd.researchrepo.model.RequestStatus;
 import com.acd.researchrepo.model.ResearchPaper;
+import com.acd.researchrepo.repository.DocumentRequestRepository;
 import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.spec.ResearchPaperSpec;
@@ -19,18 +23,22 @@ import com.acd.researchrepo.util.RoleBasedAccess;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ResearchPaperService {
     private final ResearchPaperRepository researchPaperRepository;
+    private final DocumentRequestRepository documentRequestRepository;
     private final ResearchPaperMapper researchPaperMapper;
     private final DocumentRequestService documentRequestService;
 
     public ResearchPaperService(
             ResearchPaperRepository researchPaperRepository,
+            DocumentRequestRepository documentRequestRepository,
             ResearchPaperMapper researchPaperMapper,
             DocumentRequestService documentRequestService) {
         this.researchPaperRepository = researchPaperRepository;
+        this.documentRequestRepository = documentRequestRepository;
         this.researchPaperMapper = researchPaperMapper;
         this.documentRequestService = documentRequestService;
     }
@@ -119,5 +127,51 @@ public class ResearchPaperService {
 
     public PaperUserRequestResponse getUserRequestForPaper(Integer paperId, CustomUserPrincipal userPrincipal) {
         return documentRequestService.getUserRequestForPaper(paperId, userPrincipal);
+    }
+
+    @Transactional
+    public void archivePaper(Integer id, CustomUserPrincipal principal) {
+        ResearchPaper paper = getAndVerifyAdminAccess(id, principal);
+
+        paper.setArchived(true);
+        paper.setArchivedAt(LocalDateTime.now());
+        researchPaperRepository.save(paper);
+
+        // side-effects: Reject all active requests
+        List<DocumentRequest> activeRequests = documentRequestRepository.findByPaperPaperIdAndStatusIn(
+                id, List.of(RequestStatus.PENDING, RequestStatus.ACCEPTED));
+
+        for (DocumentRequest request : activeRequests) {
+            request.setStatus(RequestStatus.REJECTED);
+            request.setRejectionReason("Paper archived");
+            documentRequestRepository.save(request);
+        }
+    }
+
+    @Transactional
+    public void unarchivePaper(Integer id, CustomUserPrincipal principal) {
+        ResearchPaper paper = getAndVerifyAdminAccess(id, principal);
+
+        paper.setArchived(false);
+        paper.setArchivedAt(null);
+        researchPaperRepository.save(paper);
+    }
+
+    private ResearchPaper getAndVerifyAdminAccess(Integer id, CustomUserPrincipal principal) {
+        if (!RoleBasedAccess.isUserAdmin(principal)) {
+            throw new ApiException(ErrorCode.ACCESS_DENIED, "Admin privileges required");
+        }
+
+        ResearchPaper paper = researchPaperRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found"));
+
+        if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
+            Integer userDeptId = principal.getDepartmentId();
+            if (userDeptId == null || !userDeptId.equals(paper.getDepartment().getDepartmentId())) {
+                throw new ApiException(ErrorCode.ACCESS_DENIED, "You do not have permission to manage this paper");
+            }
+        }
+
+        return paper;
     }
 }
