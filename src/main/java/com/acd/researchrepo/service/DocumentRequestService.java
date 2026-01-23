@@ -1,7 +1,6 @@
 package com.acd.researchrepo.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
@@ -10,6 +9,7 @@ import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
 import com.acd.researchrepo.dto.external.requests.AdminRequestResponse;
 import com.acd.researchrepo.dto.external.requests.CreateRequestRequest;
 import com.acd.researchrepo.dto.external.requests.CreateRequestResponse;
+import com.acd.researchrepo.dto.external.requests.DocumentRequestSearchRequest;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.DocumentRequestMapper;
@@ -21,12 +21,8 @@ import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.spec.DocumentRequestSpec;
 import com.acd.researchrepo.util.RoleBasedAccess;
-import com.acd.researchrepo.util.SortUtil;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,23 +44,18 @@ public class DocumentRequestService {
 
     public PaginatedResponse<UserDocumentRequestDto> getUserDocumentRequests(
             CustomUserPrincipal userPrincipal,
-            List<RequestStatus> statuses,
-            String search,
-            String sortBy,
-            String sortOrder,
-            int page,
-            int size) {
+            DocumentRequestSearchRequest request) {
 
         if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
         }
 
-        Pageable pageable = PageRequest.of(page, size, createSort(sortBy, sortOrder));
-
         Specification<DocumentRequest> spec = DocumentRequestSpec.userRequestFilter(
-                userPrincipal.getUserId(), statuses, search);
+                userPrincipal.getUserId(),
+                request.getStatus(),
+                request.getSearch());
 
-        Page<DocumentRequest> requestPage = documentRequestRepository.findAll(spec, pageable);
+        Page<DocumentRequest> requestPage = documentRequestRepository.findAll(spec, request.toPageable());
 
         return PaginatedResponse.fromPage(requestPage, documentRequestMapper::toDto);
     }
@@ -154,13 +145,7 @@ public class DocumentRequestService {
     }
 
     public PaginatedResponse<AdminRequestResponse> getAdminRequests(
-            Integer departmentId,
-            List<RequestStatus> statuses,
-            String search,
-            int page,
-            int size,
-            String sortBy,
-            String sortOrder,
+            DocumentRequestSearchRequest request,
             CustomUserPrincipal userPrincipal) {
 
         if (!RoleBasedAccess.isUserAdmin(userPrincipal)) {
@@ -169,17 +154,28 @@ public class DocumentRequestService {
 
         // Determine target department
         Integer filterDepartmentId = RoleBasedAccess.isUserSuperAdmin(userPrincipal)
-                ? departmentId
+                ? request.getDepartmentId()
                 : getUserDepartmentIdIfDepartmentAdmin(userPrincipal);
 
-        Pageable pageable = PageRequest.of(page, size, createSort(sortBy, sortOrder));
+        Specification<DocumentRequest> spec = DocumentRequestSpec.adminRequestFilter(
+                filterDepartmentId,
+                request.getStatus(),
+                request.getSearch());
 
-        Specification<DocumentRequest> spec = DocumentRequestSpec
-                .adminRequestFilter(filterDepartmentId, statuses, search);
-
-        Page<DocumentRequest> requestPage = documentRequestRepository.findAll(spec, pageable);
+        Page<DocumentRequest> requestPage = documentRequestRepository.findAll(spec, request.toPageable());
 
         return PaginatedResponse.fromPage(requestPage, documentRequestMapper::toAdminDto);
+    }
+
+    private Integer getUserDepartmentIdIfDepartmentAdmin(CustomUserPrincipal principal) {
+        if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
+            Integer userDepartmentId = principal.getDepartmentId();
+            if (userDepartmentId == null) {
+                throw new ApiException(ErrorCode.ACCESS_DENIED, "Department admin not assigned to a department");
+            }
+            return userDepartmentId;
+        }
+        return null;
     }
 
     @Transactional
@@ -257,27 +253,5 @@ public class DocumentRequestService {
         DocumentRequest savedRequest = documentRequestRepository.save(request);
 
         return documentRequestMapper.toAdminDto(savedRequest);
-    }
-
-    private Integer getUserDepartmentIdIfDepartmentAdmin(CustomUserPrincipal principal) {
-        if (RoleBasedAccess.isUserDepartmentAdmin(principal)) {
-            Integer userDepartmentId = principal.getDepartmentId();
-            if (userDepartmentId == null) {
-                throw new ApiException(ErrorCode.ACCESS_DENIED, "Department admin not assigned to a department");
-            }
-            return userDepartmentId;
-        }
-        return null;
-    }
-
-    private Sort createSort(String sortBy, String sortOrder) {
-        // Define allowed sort fields mapping
-        Map<String, String> allowedFields = Map.of(
-                "createdAt", "createdAt",
-                "status", "status",
-                "paper.title", "paper.title",
-                "userId", "user.userId");
-
-        return SortUtil.createSort(sortBy, sortOrder, allowedFields, "createdAt");
     }
 }

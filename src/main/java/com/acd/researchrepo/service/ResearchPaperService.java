@@ -1,12 +1,12 @@
 package com.acd.researchrepo.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
+import com.acd.researchrepo.dto.external.papers.ResearchPaperSearchRequest;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.ResearchPaperMapper;
@@ -15,12 +15,8 @@ import com.acd.researchrepo.repository.ResearchPaperRepository;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.spec.ResearchPaperSpec;
 import com.acd.researchrepo.util.RoleBasedAccess;
-import com.acd.researchrepo.util.SortUtil;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -40,33 +36,21 @@ public class ResearchPaperService {
     }
 
     public PaginatedResponse<ResearchPaperDto> getPapers(
-            String searchTerm,
-            List<Integer> departmentIds,
-            List<Integer> years,
-            Boolean archived,
-            String sortBy,
-            String sortOrder,
-            int page,
-            int size,
+            ResearchPaperSearchRequest request,
             CustomUserPrincipal userPrincipal) {
 
+        Boolean archived = request.getArchived();
         if (RoleBasedAccess.isUserStudent(userPrincipal)) {
             archived = false;
         }
 
-        // Sanitize sortBy and sortOrder against allowed fields using SortUtil
-        Map<String, String> allowedFields = Map.of(
-                "title", "title",
-                "authorName", "authorName",
-                "submissionDate", "submissionDate");
-        Sort sort = SortUtil.createSort(sortBy, sortOrder, allowedFields, "submissionDate");
+        Specification<ResearchPaper> spec = ResearchPaperSpec.build(
+                request.getSearch(),
+                request.getDepartmentId(),
+                request.getYear(),
+                archived);
 
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        Specification<ResearchPaper> spec = ResearchPaperSpec
-                .build(searchTerm, departmentIds, years, archived);
-
-        Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
+        Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, request.toPageable());
 
         return PaginatedResponse.fromPage(paperPage, researchPaperMapper::toDto);
     }
@@ -78,14 +62,7 @@ public class ResearchPaperService {
      * SUPER_ADMIN: sees all papers, can filter by departmentIds.
      */
     public PaginatedResponse<ResearchPaperDto> getAdminPapers(
-            String search,
-            List<Integer> departmentIds,
-            List<Integer> years,
-            Boolean archived,
-            String sortBy,
-            String sortOrder,
-            int page,
-            int size,
+            ResearchPaperSearchRequest request,
             CustomUserPrincipal userPrincipal) {
 
         // Authorization check: must be admin
@@ -104,26 +81,16 @@ public class ResearchPaperService {
             effectiveDepartmentIds = List.of(userDeptId);
         } else {
             // For SuperAdmin use provided departmentIds (can be null for all departments)
-            effectiveDepartmentIds = departmentIds;
+            effectiveDepartmentIds = request.getDepartmentId();
         }
 
-        // Sanitize sortBy and sortOrder against allowed fields
-        Map<String, String> allowedFields = Map.of(
-                "title", "title",
-                "authorName", "authorName",
-                "submissionDate", "submissionDate");
-
-        Sort sort = SortUtil.createSort(sortBy, sortOrder, allowedFields, "submissionDate");
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-
         Specification<ResearchPaper> spec = ResearchPaperSpec.buildAdmin(
-                search,
+                request.getSearch(),
                 effectiveDepartmentIds,
-                years,
-                archived);
+                request.getYear(),
+                request.getArchived());
 
-        Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, pageable);
+        Page<ResearchPaper> paperPage = researchPaperRepository.findAll(spec, request.toPageable());
 
         return PaginatedResponse.fromPage(paperPage, researchPaperMapper::toDto);
     }
