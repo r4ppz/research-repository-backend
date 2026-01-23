@@ -8,6 +8,7 @@ import java.util.Optional;
 import com.acd.researchrepo.dto.external.model.ResearchPaperDto;
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.dto.external.papers.PaperCreateRequest;
+import com.acd.researchrepo.dto.external.papers.PaperUpdateRequest;
 import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperSearchRequest;
 import com.acd.researchrepo.exception.ApiException;
@@ -91,6 +92,10 @@ public class ResearchPaperService {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Admin privileges required");
         }
 
+        if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal) && request.getDepartmentId() != null) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "departmentId filter not permitted for your role");
+        }
+
         // Determine department filtering based on role
         List<Integer> effectiveDepartmentIds = null;
         if (RoleBasedAccess.isUserDepartmentAdmin(userPrincipal)) {
@@ -125,7 +130,7 @@ public class ResearchPaperService {
 
         ResearchPaper paper = paperOpt.get();
 
-        if (RoleBasedAccess.isUserStudentOrTeacher(userPrincipal) && paper.getArchived()) {
+        if (RoleBasedAccess.isUserStudent(userPrincipal) && paper.getArchived()) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "Paper not found");
         }
 
@@ -164,7 +169,7 @@ public class ResearchPaperService {
     @Transactional
     public ResearchPaperDto updatePaper(
             Integer id,
-            PaperCreateRequest metadata,
+            PaperUpdateRequest metadata,
             CustomUserPrincipal principal) {
 
         ResearchPaper paper = getAndVerifyAdminAccess(id, principal);
