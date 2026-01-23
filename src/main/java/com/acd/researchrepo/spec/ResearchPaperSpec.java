@@ -74,7 +74,7 @@ public class ResearchPaperSpec {
             Boolean archived) {
 
         // 1. Search (Title, Author, Abstract)
-        if (searchTerm != null && !searchTerm.isEmpty()) {
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
             String like = "%" + searchTerm.toLowerCase().trim() + "%";
             predicates.add(cb.or(
                     cb.like(cb.lower(root.get("title")), like),
