@@ -38,6 +38,8 @@ logging:
 
 # Application configuration
 app:
+  storage:
+    upload-dir: ${APP_STORAGE_UPLOAD_DIR:./uploads}
   google:
     client-id: ${APP_GOOGLE_CLIENT_ID}
     client-secret: ${APP_GOOGLE_CLIENT_SECRET}
