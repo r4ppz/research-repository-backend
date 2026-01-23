@@ -68,7 +68,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .code(ErrorCode.VALIDATION_ERROR.name())
-                .message("Invalid request data")
+                .message("Input validation failed")
                 .details(fieldErrors)
                 .traceId(traceId)
                 .build();
