@@ -53,8 +53,7 @@ services:
 
     volumes:
       - ${PRIVILEGED_USERS_YAML_PATH}:/app/config/privileged-users.yaml
-      - paper_uploads:/app/uploads
+      - ${UPLOADS_HOST_PATH}:/app/uploads
 
 volumes:
   pgdata:
-  paper_uploads:
