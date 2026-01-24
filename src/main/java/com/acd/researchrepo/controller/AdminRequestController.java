@@ -1,4 +1,4 @@
-package com.acd.researchrepo.controller.admin;
+package com.acd.researchrepo.controller;
 
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
 import com.acd.researchrepo.dto.external.requests.AdminRequestResponse;
