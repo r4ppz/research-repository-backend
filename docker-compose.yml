@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:16
     container_name: db
-    restart: always
+    restart: no
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -46,12 +46,15 @@ services:
       APP_CORS_ALLOWED_METHODS: ${APP_CORS_ALLOWED_METHODS}
       APP_CORS_ALLOWED_HEADERS: ${APP_CORS_ALLOWED_HEADERS}
       APP_CORS_ALLOW_CREDENTIALS: ${APP_CORS_ALLOW_CREDENTIALS}
+      APP_STORAGE_UPLOAD_DIR: /app/uploads
 
     ports:
       - "8080:8080"
 
     volumes:
       - ${PRIVILEGED_USERS_YAML_PATH}:/app/config/privileged-users.yaml
+      - paper_uploads:/app/uploads
 
 volumes:
   pgdata:
+  paper_uploads:

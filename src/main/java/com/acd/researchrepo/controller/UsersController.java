@@ -3,6 +3,7 @@ package com.acd.researchrepo.controller;
 import com.acd.researchrepo.dto.external.model.UserDocumentRequestDto;
 import com.acd.researchrepo.dto.external.model.UserDto;
 import com.acd.researchrepo.dto.external.papers.PaginatedResponse;
+import com.acd.researchrepo.dto.external.requests.DocumentRequestSearchRequest;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.acd.researchrepo.mapper.UserMapper;
@@ -14,10 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
+
+import jakarta.validation.Valid;
 
 @Slf4j
 @RestController
@@ -36,10 +38,6 @@ public class UsersController {
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserPrincipal principal) {
         log.debug("api/users/me endpoint hit");
 
-        if (principal == null) {
-            throw new ApiException(ErrorCode.UNAUTHENTICATED);
-        }
-
         UserDto userDto = userMapper.toDto(principal.getUser());
         return ResponseEntity.ok(userDto);
     }
@@ -47,23 +45,13 @@ public class UsersController {
     @GetMapping("/me/requests")
     public ResponseEntity<PaginatedResponse<UserDocumentRequestDto>> getUserRequests(
             @AuthenticationPrincipal CustomUserPrincipal principal,
-            @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "sortBy", required = false) String sortBy,
-            @RequestParam(value = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
-            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "20") int size) {
+            @Valid DocumentRequestSearchRequest request) {
         log.debug("api/users/me/requests endpoint hit");
-
-        if (principal == null) {
-            throw new ApiException(ErrorCode.UNAUTHENTICATED);
-        }
 
         if (!RoleBasedAccess.isUserStudentOrTeacher(principal)) {
             throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
         }
 
-        return ResponseEntity.ok(documentRequestService.getUserDocumentRequests(
-                principal, status, search, sortBy, sortOrder, page, size));
+        return ResponseEntity.ok(documentRequestService.getUserDocumentRequests(principal, request));
     }
 }
