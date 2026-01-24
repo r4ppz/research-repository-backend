@@ -8,89 +8,100 @@ import com.acd.researchrepo.model.ResearchPaper;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 public class ResearchPaperSpec {
 
     /**
-     * Builds a dynamic JPA Specification for filtering ResearchPaper entities.
+     * Builds a JPA Specification for filtering ResearchPaper entities based on
+     * search term,
+     * department IDs, years, and archived status.
      *
-     * @param searchTerm    Search string to match against title, authorName, or
-     *                      abstractText (case-insensitive).
-     * @param departmentIds Comma-separated department IDs to filter by department.
-     * @param years         Comma-separated years to filter by submissionDate.
-     * @param archived      Boolean flag to filter by archived status.
-     * @return Specification for querying ResearchPaper entities with the given
-     *         filters.
+     * @param searchTerm    Text to search in title, author, or abstract
+     *                      (case-insensitive).
+     * @param departmentIds List of department IDs to filter by.
+     * @param years         List of years to filter submission dates.
+     * @param archived      Archived status to filter by.
+     * @return Specification for querying ResearchPaper entities.
      */
     public static Specification<ResearchPaper> build(
             String searchTerm,
-            String departmentIds,
-            String years,
+            List<Integer> departmentIds,
+            List<Integer> years,
             Boolean archived) {
 
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
-            // Search string (title, authorName, abstractText)
-            if (searchTerm != null && !searchTerm.isEmpty()) {
-                String like = "%" + searchTerm.toLowerCase() + "%";
-                predicates.add(
-                        cb.or(
-                                cb.like(cb.lower(root.get("title")), like),
-                                cb.like(cb.lower(root.get("authorName")), like),
-                                cb.like(cb.lower(root.get("abstractText")), like)
-
-                        ));
-            }
-
-            // Department filtering - parse comma-separated string into list of integers
-            if (departmentIds != null && !departmentIds.isEmpty()) {
-                String[] deptIds = departmentIds.split(",");
-                List<Integer> deptIdList = new ArrayList<>();
-                for (String id : deptIds) {
-                    try {
-                        deptIdList.add(Integer.parseInt(id.trim()));
-                    } catch (NumberFormatException e) {
-                        // Skip invalid department IDs
-                    }
-                }
-                if (!deptIdList.isEmpty()) {
-                    predicates.add(root.get("department").get("departmentId").in(deptIdList));
-                }
-            }
-
-            // Year filtering - parse comma-separated string into list of integers and
-            // create OR condition
-            if (years != null && !years.isEmpty()) {
-                String[] yearArray = years.split(",");
-                List<Integer> yearList = new ArrayList<>();
-                for (String yearStr : yearArray) {
-                    try {
-                        yearList.add(Integer.parseInt(yearStr.trim()));
-                    } catch (NumberFormatException e) {
-                        // Skip invalid years
-                    }
-                }
-                if (!yearList.isEmpty()) {
-                    // Create OR condition for all years: (year1 OR year2 OR year3 ...)
-                    List<Predicate> yearPredicates = new ArrayList<>();
-                    for (Integer year : yearList) {
-                        yearPredicates.add(cb.between(
-                                root.get("submissionDate"),
-                                LocalDate.of(year, 1, 1),
-                                LocalDate.of(year, 12, 31)));
-                    }
-                    predicates.add(cb.or(yearPredicates.toArray(new Predicate[0])));
-                }
-            }
-
-            // Archive filtering
-            if (archived != null) {
-                predicates.add(cb.equal(root.get("archived"), archived));
-            }
-
+            addCommonPredicates(root, cb, predicates, searchTerm, departmentIds, years, archived);
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * Builds a JPA Specification for admin paper listing with department scoping.
+     *
+     * @param searchTerm    Text to search in title, author, or abstract
+     *                      (case-insensitive).
+     * @param departmentIds List of department IDs to filter by (for SUPER_ADMIN
+     *                      multiselect,
+     *                      or single-item list for DEPARTMENT_ADMIN scoping).
+     * @param years         List of years to filter submission dates.
+     * @param archived      Archived status to filter by (null returns both).
+     * @return Specification for querying ResearchPaper entities.
+     */
+    public static Specification<ResearchPaper> buildAdmin(
+            String searchTerm,
+            List<Integer> departmentIds,
+            List<Integer> years,
+            Boolean archived) {
+
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            addCommonPredicates(root, cb, predicates, searchTerm, departmentIds, years, archived);
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private static void addCommonPredicates(
+            Root<ResearchPaper> root,
+            CriteriaBuilder cb,
+            List<Predicate> predicates,
+            String searchTerm,
+            List<Integer> departmentIds,
+            List<Integer> years,
+            Boolean archived) {
+
+        // 1. Search (Title, Author, Abstract)
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            String like = "%" + searchTerm.toLowerCase().trim() + "%";
+            predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("title")), like),
+                    cb.like(cb.lower(root.get("authorName")), like),
+                    cb.like(cb.lower(root.get("abstractText")), like)));
+        }
+
+        // Department filtering
+        if (departmentIds != null && !departmentIds.isEmpty()) {
+            predicates.add(root.get("department").get("departmentId").in(departmentIds));
+        }
+
+        // Year filtering
+        if (years != null && !years.isEmpty()) {
+            List<Predicate> yearPredicates = new ArrayList<>();
+            for (Integer year : years) {
+                yearPredicates.add(cb.between(
+                        root.get("submissionDate"),
+                        LocalDate.of(year, 1, 1),
+                        LocalDate.of(year, 12, 31)));
+            }
+            predicates.add(cb.or(yearPredicates.toArray(new Predicate[0])));
+        }
+
+        // Archive filtering
+        if (archived != null) {
+            predicates.add(cb.equal(root.get("archived"), archived));
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.acd.researchrepo.dto.external.requests.CreateRequestResponse;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.DocumentRequestService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +36,7 @@ public class RequestsController {
             @AuthenticationPrincipal CustomUserPrincipal user) {
         log.debug("api/requests endpoint hit");
         CreateRequestResponse response = requestService.createRequest(request, user);
-        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{requestId}")

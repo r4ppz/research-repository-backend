@@ -15,4 +15,5 @@ public class UserDto {
     private final String fullName;
     private final UserRole role;
     private final DepartmentDto department;
+    private final String profilePictureUrl;
 }

@@ -28,12 +28,15 @@ public class GoogleAuthService {
     private String googleClientSecret;
     private String redirectUri;
 
+    private final PrivilegedUserConfigLoader privilegedUserConfigLoader;
+
     private final GoogleAuthorizationCodeFlow authorizationFlow;
     private final GoogleIdTokenVerifier idTokenVerifier;
     private final AppProperties appProperties;
 
-    public GoogleAuthService(AppProperties appProperties) {
+    public GoogleAuthService(AppProperties appProperties, PrivilegedUserConfigLoader privilegedUserConfigLoader) {
         this.appProperties = appProperties;
+        this.privilegedUserConfigLoader = privilegedUserConfigLoader;
         this.googleClientId = this.appProperties.getGoogle().getClientId();
         this.googleClientSecret = this.appProperties.getGoogle().getClientSecret();
         this.redirectUri = this.appProperties.getGoogle().getRedirectUri();
@@ -60,12 +63,18 @@ public class GoogleAuthService {
         GoogleIdToken.Payload payload = verifyAndExtractPayload(tokenResponse.getIdToken());
 
         String email = getVerifiedEmail(payload);
-        enforceDomainRestrictions(email);
+
+        // Previleged users dont need to follow email format (acdeducation)
+        // This is bacause I dont know if they have one :p
+        if (!isPrivilegedUser(email)) {
+            enforceDomainRestrictions(email);
+        }
 
         return GoogleUserInfo.builder()
                 .email(email)
                 .name((String) payload.get("name"))
                 .googleId(payload.getSubject())
+                .profilePictureUrl((String) payload.get("picture"))
                 .build();
     }
 
@@ -109,6 +118,26 @@ public class GoogleAuthService {
                 throw new ApiException(ErrorCode.DOMAIN_NOT_ALLOWED, "Development mode only allows .com emails");
             }
         }
+    }
+
+    private boolean isPrivilegedUser(String email) {
+        String normalized = email.toLowerCase().trim();
+        var config = privilegedUserConfigLoader.getPrivilegedUserConfig();
+        if (config == null)
+            return false;
+
+        if (config.getSuperAdmins() != null
+                && config.getSuperAdmins().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
+            return true;
+        }
+        if (config.getTeachers() != null
+                && config.getTeachers().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
+            return true;
+        }
+        if (config.getDepartmentAdminsMap().containsKey(normalized)) {
+            return true;
+        }
+        return false;
     }
 
     private String getVerifiedEmail(GoogleIdToken.Payload payload) {

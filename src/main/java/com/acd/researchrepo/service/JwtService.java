@@ -56,6 +56,10 @@ public class JwtService {
             claims.put("departmentId", user.getDepartment().getDepartmentId());
         }
 
+        if (user.getProfilePictureUrl() != null) {
+            claims.put("profilePictureUrl", user.getProfilePictureUrl());
+        }
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getUserId().toString())

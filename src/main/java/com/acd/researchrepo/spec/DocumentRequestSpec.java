@@ -51,4 +51,25 @@ public class DocumentRequestSpec {
             Integer departmentId, List<RequestStatus> statuses) {
         return adminRequestFilter(departmentId, statuses, null);
     }
+
+    public static Specification<DocumentRequest> hasUserId(Integer userId) {
+        return (root, query, cb) -> cb.equal(root.get("user").get("userId"), userId);
+    }
+
+    public static Specification<DocumentRequest> paperNotArchived() {
+        return (root, query, cb) -> cb.isFalse(root.get("paper").get("archived"));
+    }
+
+    public static Specification<DocumentRequest> userRequestFilter(
+            Integer userId,
+            List<RequestStatus> statuses,
+            String search) {
+
+        Specification<DocumentRequest> spec = (root, query, cb) -> cb.conjunction();
+        spec = spec.and(hasUserId(userId))
+                .and(hasStatusIn(statuses))
+                .and(hasSearchTerm(search))
+                .and(paperNotArchived());
+        return spec;
+    }
 }
