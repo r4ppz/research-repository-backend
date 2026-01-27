@@ -1,9 +1,12 @@
-Always scan the documentation/specification!
+### Documentation & Specs
 
-Strictly follow the documentation/specification at https://r4ppz.github.io/research-repo-docs/ or https://github.com/r4ppz/research-repo-docs.
-If web access is unavailable, use the local copy at ~/Project/research-repo-docs. If it is missing, ask the user.
-If the implementation does not match the specification, inform the user before making any changes.
+**Scan docs before any code change.**
 
-Follow existing patterns and conventions of the project.
+- **Hierarchy:** Local (`~/Project/research-repo-docs`) > Web ([r4ppz.github.io](https://r4ppz.github.io/research-repo-docs/)).
+- **Stop Rule:** If docs are missing, **ask the user.** No guessing API paths or DB schema.
+- **Verification:** If a task deviates from the `api_contract.md` or `specification.md`, warn the user before proceeding.
 
-There are no unit test yet so dont bother checking or runing one.
+### Workflow
+
+- **No Tests:** Do not attempt to scan, run or write unit tests yet.
+- **Patterns:** Follow existing conventions used in the project. Or suggest a modern alternative if deprecated or bad code is encountered.
