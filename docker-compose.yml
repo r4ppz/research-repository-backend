@@ -1,5 +1,5 @@
 services:
-  db:
+  database:
     image: postgres:16
     container_name: db
     restart: no
@@ -17,7 +17,7 @@ services:
     image: research-repo-backend
     container_name: backend
     depends_on:
-      - db
+      - database
     environment:
       # Database
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
