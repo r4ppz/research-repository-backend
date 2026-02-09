@@ -53,6 +53,7 @@ Thumbs.db
 
 # -----------------------------------------------------------------------------
 # File Storage & Security
+privileged-users.yaml
 
 # User-Uploaded Files
 /uploads/
