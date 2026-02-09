@@ -1,8 +1,12 @@
 ## Collaboration Guide
 
-To maintain code quality and avoid configuration conflicts, all developers must follow this workflow.
+**DO NOT COMMIT** these files; `privileged-users.yaml`, `env` all the things listed in .gitignore
+
+---
 
 ### Branch Strategy
+
+To maintain code quality and avoid configuration conflicts, all developers must follow this workflow.
 
 We use a two-branch system. **Direct pushes to `main` are blocked.**
 
