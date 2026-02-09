@@ -1,6 +1,6 @@
 ## Collaboration Guide
 
-**DO NOT COMMIT** these files; `privileged-users.yaml`, `env` all the things listed in .gitignore
+**Do not commit** sensitive files such as `privileged-users.yaml`, `env`, or any files matching patterns in `.gitignore`. This protects credentials and maintains repository integrity.
 
 ---
 
