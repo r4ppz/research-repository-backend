@@ -34,7 +34,7 @@ logging:
     com.acd.researchrepo: DEBUG
   pattern:
     level: "%5p [Trace: %X{traceId}]"
-    console: "%d{yyyy-MM-dd HH:mm:ss} %5p [Trace: %X{traceId}] --- [%thread] %-40.40logger{39} : %m%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [traceId=%X{traceId}] --- [%thread] %-36.36logger{36} : %msg%n%ex"
 
 # Application configuration
 app:
