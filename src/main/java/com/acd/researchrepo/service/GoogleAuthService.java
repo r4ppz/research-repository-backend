@@ -22,11 +22,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class GoogleAuthService {
 
-    @Value("${spring.profiles.active}")
-    private String environment;
-    private String googleClientId;
-    private String googleClientSecret;
-    private String redirectUri;
+    private final String environment;
+    private final String googleClientId;
+    private final String googleClientSecret;
+    private final String redirectUri;
 
     private final PrivilegedUserConfigLoader privilegedUserConfigLoader;
 
@@ -34,7 +33,12 @@ public class GoogleAuthService {
     private final GoogleIdTokenVerifier idTokenVerifier;
     private final AppProperties appProperties;
 
-    public GoogleAuthService(AppProperties appProperties, PrivilegedUserConfigLoader privilegedUserConfigLoader) {
+    public GoogleAuthService(
+        AppProperties appProperties,
+        PrivilegedUserConfigLoader privilegedUserConfigLoader,
+        @Value("${spring.profiles.active}") String environment) {
+
+        this.environment = environment;
         this.appProperties = appProperties;
         this.privilegedUserConfigLoader = privilegedUserConfigLoader;
         this.googleClientId = this.appProperties.getGoogle().getClientId();
