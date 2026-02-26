@@ -8,6 +8,6 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class DepartmentDto {
-    private final Integer departmentId;
-    private final String departmentName;
+  private final Integer departmentId;
+  private final String departmentName;
 }

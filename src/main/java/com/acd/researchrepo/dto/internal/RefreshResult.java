@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class RefreshResult {
-    private final String accessToken;
-    private final String refreshToken;
+  private final String accessToken;
+  private final String refreshToken;
 }
