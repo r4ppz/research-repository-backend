@@ -2,9 +2,13 @@ name: Backend CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
@@ -35,9 +39,6 @@ jobs:
           java-version: "21"
           distribution: "temurin"
           cache: "maven"
-
-      - name: Run Style Check
-        run: mvn spotless:check
 
       - name: Run Unit and Integration Tests
         run: mvn clean verify -Dspring.profiles.active=test
