@@ -6,7 +6,8 @@ import com.acd.researchrepo.dto.external.papers.PaperUserRequestResponse;
 import com.acd.researchrepo.dto.external.papers.ResearchPaperSearchRequest;
 import com.acd.researchrepo.security.CustomUserPrincipal;
 import com.acd.researchrepo.service.ResearchPaperService;
-
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,45 +15,40 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.extern.slf4j.Slf4j;
-
-import jakarta.validation.Valid;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/papers")
 public class ResearchPaperController {
-    private final ResearchPaperService researchPaperService;
+  private final ResearchPaperService researchPaperService;
 
-    public ResearchPaperController(ResearchPaperService service) {
-        this.researchPaperService = service;
-    }
+  public ResearchPaperController(ResearchPaperService service) {
+    this.researchPaperService = service;
+  }
 
-    @GetMapping
-    public ResponseEntity<PaginatedResponse<ResearchPaperDto>> listPapers(
-            @Valid ResearchPaperSearchRequest request,
-            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/papers endpoint hit");
+  @GetMapping
+  public ResponseEntity<PaginatedResponse<ResearchPaperDto>> listPapers(
+      @Valid ResearchPaperSearchRequest request,
+      @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+    log.debug("api/papers endpoint hit");
 
-        return ResponseEntity.ok(researchPaperService.getPapers(request, userPrincipal));
-    }
+    return ResponseEntity.ok(researchPaperService.getPapers(request, userPrincipal));
+  }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ResearchPaperDto> getPaperById(
-            @PathVariable Integer id,
-            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/papers/{} endpoint hit", id);
+  @GetMapping("/{id}")
+  public ResponseEntity<ResearchPaperDto> getPaperById(
+      @PathVariable Integer id, @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+    log.debug("api/papers/{} endpoint hit", id);
 
-        return ResponseEntity.ok(researchPaperService.getPaperById(id, userPrincipal));
-    }
+    return ResponseEntity.ok(researchPaperService.getPaperById(id, userPrincipal));
+  }
 
-    @GetMapping("/{id}/my-request")
-    public ResponseEntity<PaperUserRequestResponse> getUserRequestForPaper(
-            @PathVariable Integer id,
-            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        log.debug("api/papers/{}/my-request endpoint hit", id);
+  @GetMapping("/{id}/my-request")
+  public ResponseEntity<PaperUserRequestResponse> getUserRequestForPaper(
+      @PathVariable Integer id, @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+    log.debug("api/papers/{}/my-request endpoint hit", id);
 
-        PaperUserRequestResponse response = researchPaperService.getUserRequestForPaper(id, userPrincipal);
-        return ResponseEntity.ok(response);
-    }
+    PaperUserRequestResponse response =
+        researchPaperService.getUserRequestForPaper(id, userPrincipal);
+    return ResponseEntity.ok(response);
+  }
 }

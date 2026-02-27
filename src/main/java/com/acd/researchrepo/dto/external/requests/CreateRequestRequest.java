@@ -8,5 +8,5 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder
 public class CreateRequestRequest {
-    private Integer paperId;
+  private Integer paperId;
 }

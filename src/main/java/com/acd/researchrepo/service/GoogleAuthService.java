@@ -1,10 +1,5 @@
 package com.acd.researchrepo.service;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.Collections;
-
 import com.acd.researchrepo.dto.internal.GoogleUserInfo;
 import com.acd.researchrepo.environment.AppProperties;
 import com.acd.researchrepo.exception.ApiException;
@@ -15,143 +10,147 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GoogleAuthService {
 
-    private final String environment;
-    private final String googleClientId;
-    private final String googleClientSecret;
-    private final String redirectUri;
+  private final String environment;
+  private final String googleClientId;
+  private final String googleClientSecret;
+  private final String redirectUri;
 
-    private final PrivilegedUserConfigLoader privilegedUserConfigLoader;
+  private final PrivilegedUserConfigLoader privilegedUserConfigLoader;
 
-    private final GoogleAuthorizationCodeFlow authorizationFlow;
-    private final GoogleIdTokenVerifier idTokenVerifier;
-    private final AppProperties appProperties;
+  private final GoogleAuthorizationCodeFlow authorizationFlow;
+  private final GoogleIdTokenVerifier idTokenVerifier;
+  private final AppProperties appProperties;
 
-    public GoogleAuthService(
-        AppProperties appProperties,
-        PrivilegedUserConfigLoader privilegedUserConfigLoader,
-        @Value("${spring.profiles.active}") String environment) {
+  public GoogleAuthService(
+      AppProperties appProperties,
+      PrivilegedUserConfigLoader privilegedUserConfigLoader,
+      @Value("${spring.profiles.active}") String environment) {
 
-        this.environment = environment;
-        this.appProperties = appProperties;
-        this.privilegedUserConfigLoader = privilegedUserConfigLoader;
-        this.googleClientId = this.appProperties.getGoogle().getClientId();
-        this.googleClientSecret = this.appProperties.getGoogle().getClientSecret();
-        this.redirectUri = this.appProperties.getGoogle().getRedirectUri();
+    this.environment = environment;
+    this.appProperties = appProperties;
+    this.privilegedUserConfigLoader = privilegedUserConfigLoader;
+    this.googleClientId = this.appProperties.getGoogle().getClientId();
+    this.googleClientSecret = this.appProperties.getGoogle().getClientSecret();
+    this.redirectUri = this.appProperties.getGoogle().getRedirectUri();
 
-        NetHttpTransport transport = new NetHttpTransport();
-        GsonFactory jsonFactory = new GsonFactory();
+    NetHttpTransport transport = new NetHttpTransport();
+    GsonFactory jsonFactory = new GsonFactory();
 
-        this.authorizationFlow = new GoogleAuthorizationCodeFlow.Builder(
+    this.authorizationFlow =
+        new GoogleAuthorizationCodeFlow.Builder(
                 transport,
                 jsonFactory,
                 googleClientId,
                 googleClientSecret,
                 Arrays.asList("openid", "email", "profile"))
-                .setAccessType("offline")
-                .build();
+            .setAccessType("offline")
+            .build();
 
-        this.idTokenVerifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(googleClientId))
-                .build();
+    this.idTokenVerifier =
+        new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+            .setAudience(Collections.singletonList(googleClientId))
+            .build();
+  }
+
+  public GoogleUserInfo validateCodeAndGetUserInfo(String authorizationCode) {
+    GoogleTokenResponse tokenResponse = exchangeAuthorizationCode(authorizationCode);
+    GoogleIdToken.Payload payload = verifyAndExtractPayload(tokenResponse.getIdToken());
+
+    String email = getVerifiedEmail(payload);
+
+    // Previleged users dont need to follow email format (acdeducation)
+    // This is bacause I dont know if they have one :p
+    if (!isPrivilegedUser(email)) {
+      enforceDomainRestrictions(email);
     }
 
-    public GoogleUserInfo validateCodeAndGetUserInfo(String authorizationCode) {
-        GoogleTokenResponse tokenResponse = exchangeAuthorizationCode(authorizationCode);
-        GoogleIdToken.Payload payload = verifyAndExtractPayload(tokenResponse.getIdToken());
+    return GoogleUserInfo.builder()
+        .email(email)
+        .name((String) payload.get("name"))
+        .googleId(payload.getSubject())
+        .profilePictureUrl((String) payload.get("picture"))
+        .build();
+  }
 
-        String email = getVerifiedEmail(payload);
+  private GoogleTokenResponse exchangeAuthorizationCode(String code) {
+    try {
+      return authorizationFlow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+    } catch (IOException e) {
+      throw new ApiException(
+          ErrorCode.INVALID_TOKEN, "Failed to exchange Google authorization code");
+    }
+  }
 
-        // Previleged users dont need to follow email format (acdeducation)
-        // This is bacause I dont know if they have one :p
-        if (!isPrivilegedUser(email)) {
-            enforceDomainRestrictions(email);
-        }
-
-        return GoogleUserInfo.builder()
-                .email(email)
-                .name((String) payload.get("name"))
-                .googleId(payload.getSubject())
-                .profilePictureUrl((String) payload.get("picture"))
-                .build();
+  private GoogleIdToken.Payload verifyAndExtractPayload(String idTokenString) {
+    if (idTokenString == null) {
+      throw new ApiException(ErrorCode.INVALID_TOKEN, "ID token missing from Google response");
     }
 
-    private GoogleTokenResponse exchangeAuthorizationCode(String code) {
-        try {
-            return authorizationFlow
-                    .newTokenRequest(code)
-                    .setRedirectUri(redirectUri)
-                    .execute();
-        } catch (IOException e) {
-            throw new ApiException(ErrorCode.INVALID_TOKEN, "Failed to exchange Google authorization code");
-        }
+    GoogleIdToken idToken;
+    try {
+      idToken = idTokenVerifier.verify(idTokenString);
+    } catch (GeneralSecurityException | IOException e) {
+      throw new ApiException(ErrorCode.INVALID_TOKEN, "Failed to verify Google ID token");
     }
 
-    private GoogleIdToken.Payload verifyAndExtractPayload(String idTokenString) {
-        if (idTokenString == null) {
-            throw new ApiException(ErrorCode.INVALID_TOKEN, "ID token missing from Google response");
-        }
-
-        GoogleIdToken idToken;
-        try {
-            idToken = idTokenVerifier.verify(idTokenString);
-        } catch (GeneralSecurityException | IOException e) {
-            throw new ApiException(ErrorCode.INVALID_TOKEN, "Failed to verify Google ID token");
-        }
-
-        if (idToken == null) {
-            throw new ApiException(ErrorCode.INVALID_TOKEN, "Invalid Google ID token");
-        }
-
-        return idToken.getPayload();
+    if (idToken == null) {
+      throw new ApiException(ErrorCode.INVALID_TOKEN, "Invalid Google ID token");
     }
 
-    private void enforceDomainRestrictions(String email) {
-        if ("prod".equalsIgnoreCase(environment)) {
-            if (!email.endsWith("acdeducation.com")) {
-                throw new ApiException(ErrorCode.DOMAIN_NOT_ALLOWED, "Email domain must be @acdeducation.com");
-            }
-        } else {
-            if (!email.endsWith(".com")) {
-                throw new ApiException(ErrorCode.DOMAIN_NOT_ALLOWED, "Development mode only allows .com emails");
-            }
-        }
-    }
+    return idToken.getPayload();
+  }
 
-    private boolean isPrivilegedUser(String email) {
-        String normalized = email.toLowerCase().trim();
-        var config = privilegedUserConfigLoader.getPrivilegedUserConfig();
-        if (config == null)
-            return false;
-
-        if (config.getSuperAdmins() != null
-                && config.getSuperAdmins().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
-            return true;
-        }
-        if (config.getTeachers() != null
-                && config.getTeachers().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
-            return true;
-        }
-        if (config.getDepartmentAdminsMap().containsKey(normalized)) {
-            return true;
-        }
-        return false;
+  private void enforceDomainRestrictions(String email) {
+    if ("prod".equalsIgnoreCase(environment)) {
+      if (!email.endsWith("acdeducation.com")) {
+        throw new ApiException(
+            ErrorCode.DOMAIN_NOT_ALLOWED, "Email domain must be @acdeducation.com");
+      }
+    } else {
+      if (!email.endsWith(".com")) {
+        throw new ApiException(
+            ErrorCode.DOMAIN_NOT_ALLOWED, "Development mode only allows .com emails");
+      }
     }
+  }
 
-    private String getVerifiedEmail(GoogleIdToken.Payload payload) {
-        if (!payload.getEmailVerified()) {
-            throw new ApiException(ErrorCode.INVALID_TOKEN, "Google email is not verified");
-        }
-        String email = payload.getEmail();
-        if (email == null) {
-            throw new ApiException(ErrorCode.INVALID_TOKEN, "Google email is null");
-        }
-        return email;
+  private boolean isPrivilegedUser(String email) {
+    String normalized = email.toLowerCase().trim();
+    var config = privilegedUserConfigLoader.getPrivilegedUserConfig();
+    if (config == null) return false;
+
+    if (config.getSuperAdmins() != null
+        && config.getSuperAdmins().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
+      return true;
     }
+    if (config.getTeachers() != null
+        && config.getTeachers().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
+      return true;
+    }
+    if (config.getDepartmentAdminsMap().containsKey(normalized)) {
+      return true;
+    }
+    return false;
+  }
+
+  private String getVerifiedEmail(GoogleIdToken.Payload payload) {
+    if (!payload.getEmailVerified()) {
+      throw new ApiException(ErrorCode.INVALID_TOKEN, "Google email is not verified");
+    }
+    String email = payload.getEmail();
+    if (email == null) {
+      throw new ApiException(ErrorCode.INVALID_TOKEN, "Google email is null");
+    }
+    return email;
+  }
 }
