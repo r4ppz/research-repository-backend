@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PrivilegedUserConfigLoader implements InitializingBean {
 
-  @Value("${fixed.privileged.users.yaml.path}")
+  @Value("${app.privileged-users-config-path}")
   private String configFilePath;
 
   private PrivilegedUserConfig privilegedUserConfig;
