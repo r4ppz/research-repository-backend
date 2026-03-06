@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 @Builder
 public class CreateRequestResponse {
-    private Integer requestId;
+  private Integer requestId;
 }

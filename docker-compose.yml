@@ -32,7 +32,6 @@ services:
       # Google OAuth
       APP_GOOGLE_CLIENT_ID: ${APP_GOOGLE_CLIENT_ID}
       APP_GOOGLE_CLIENT_SECRET: ${APP_GOOGLE_CLIENT_SECRET}
-      APP_GOOGLE_REDIRECT_URI: ${APP_GOOGLE_REDIRECT_URI}
 
       # JWT & Auth
       APP_JWT_SECRET: ${APP_JWT_SECRET}
@@ -46,13 +45,13 @@ services:
       APP_CORS_ALLOWED_METHODS: ${APP_CORS_ALLOWED_METHODS}
       APP_CORS_ALLOWED_HEADERS: ${APP_CORS_ALLOWED_HEADERS}
       APP_CORS_ALLOW_CREDENTIALS: ${APP_CORS_ALLOW_CREDENTIALS}
-      APP_STORAGE_UPLOAD_DIR: /app/uploads
 
     ports:
       - "8080:8080"
 
     volumes:
-      - ${PRIVILEGED_USERS_YAML_PATH}:/app/config/privileged-users.yaml
+      # Mount host file to container (HOST_PATH:CONTAINER_PATH)
+      - ${PRIVILEGED_USERS_CONFIG_HOST_PATH}:/app/config/privileged-users.yaml
       - ${UPLOADS_HOST_PATH}:/app/uploads
 
 volumes:
