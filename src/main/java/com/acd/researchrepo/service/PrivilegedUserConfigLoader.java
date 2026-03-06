@@ -1,6 +1,7 @@
 package com.acd.researchrepo.service;
 
 import com.acd.researchrepo.config.PrivilegedUserConfig;
+import com.acd.researchrepo.environment.AppProperties;
 import com.acd.researchrepo.exception.ApiException;
 import com.acd.researchrepo.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,17 +11,18 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class PrivilegedUserConfigLoader implements InitializingBean {
 
-  @Value("${app.privileged-users-config-path}")
-  private String configFilePath;
-
+  private final AppProperties appProperties;
   private PrivilegedUserConfig privilegedUserConfig;
+
+  public PrivilegedUserConfigLoader(AppProperties appProperties) {
+    this.appProperties = appProperties;
+  }
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -30,7 +32,7 @@ public class PrivilegedUserConfigLoader implements InitializingBean {
   public void loadConfig() {
     try {
       ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-      File yamlFile = new File(configFilePath);
+      File yamlFile = new File(appProperties.getPrivilegedUsersYamlPath());
       this.privilegedUserConfig = mapper.readValue(yamlFile, PrivilegedUserConfig.class);
 
       validate();
