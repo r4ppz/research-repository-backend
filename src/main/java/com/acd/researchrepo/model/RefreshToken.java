@@ -34,13 +34,16 @@ public class RefreshToken {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", nullable = false)
-  @NotNull private User user;
+  @NotNull
+  private User user;
 
   @Column(name = "token", nullable = false, unique = true, columnDefinition = "TEXT")
-  @NotNull private String token;
+  @NotNull
+  private String token;
 
   @Column(name = "expires_at", nullable = false)
-  @NotNull private LocalDateTime expiresAt;
+  @NotNull
+  private LocalDateTime expiresAt;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)

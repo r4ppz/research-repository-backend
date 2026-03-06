@@ -37,18 +37,22 @@ public class DocumentRequest {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", nullable = false)
-  @NotNull private User user;
+  @NotNull
+  private User user;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "paper_id", nullable = false)
-  @NotNull private ResearchPaper paper;
+  @NotNull
+  private ResearchPaper paper;
 
   @Column(name = "request_date", nullable = false)
-  @NotNull private LocalDateTime requestDate = LocalDateTime.now();
+  @NotNull
+  private LocalDateTime requestDate = LocalDateTime.now();
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 50)
-  @NotNull private RequestStatus status = RequestStatus.PENDING;
+  @NotNull
+  private RequestStatus status = RequestStatus.PENDING;
 
   @Column(name = "rejection_reason", length = 255)
   @Size(max = 255)

@@ -44,12 +44,14 @@ public class User {
   private Integer userId;
 
   @Column(name = "email", unique = true, nullable = false, length = 255)
-  @NotNull @Email
+  @NotNull
+  @Email
   @Size(max = 255)
   private String email;
 
   @Column(name = "full_name", nullable = false, length = 255)
-  @NotNull @Size(max = 255)
+  @NotNull
+  @Size(max = 255)
   private String fullName;
 
   @Column(name = "profile_picture_url", nullable = true, length = 500)
@@ -58,7 +60,8 @@ public class User {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false, length = 50)
-  @NotNull @Default
+  @NotNull
+  @Default
   private UserRole role = UserRole.STUDENT;
 
   @ManyToOne(fetch = FetchType.EAGER)

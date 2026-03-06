@@ -32,7 +32,8 @@ public class Department {
   private Integer departmentId;
 
   @Column(name = "department_name", unique = true, nullable = false, length = 64)
-  @NotNull @Size(max = 64)
+  @NotNull
+  @Size(max = 64)
   private String departmentName;
 
   @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)

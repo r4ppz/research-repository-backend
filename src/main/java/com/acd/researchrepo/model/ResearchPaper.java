@@ -39,28 +39,35 @@ public class ResearchPaper {
   private Integer paperId;
 
   @Column(name = "title", nullable = false, columnDefinition = "TEXT")
-  @NotNull private String title;
+  @NotNull
+  private String title;
 
   @Column(name = "author_name", nullable = false, length = 255)
-  @NotNull @Size(max = 255)
+  @NotNull
+  @Size(max = 255)
   private String authorName;
 
   @Column(name = "abstract_text", nullable = false, columnDefinition = "TEXT")
-  @NotNull private String abstractText;
+  @NotNull
+  private String abstractText;
 
   @Column(name = "file_path", nullable = false, length = 512)
-  @NotNull @Size(max = 512)
+  @NotNull
+  @Size(max = 512)
   private String filePath;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", nullable = false)
-  @NotNull private Department department;
+  @NotNull
+  private Department department;
 
   @Column(name = "submission_date", nullable = false)
-  @NotNull private LocalDate submissionDate;
+  @NotNull
+  private LocalDate submissionDate;
 
   @Column(name = "archived", nullable = false)
-  @NotNull private Boolean archived = false;
+  @NotNull
+  private Boolean archived = false;
 
   @Column(name = "archived_at")
   private LocalDateTime archivedAt;

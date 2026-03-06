@@ -9,5 +9,6 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class GoogleAuthRequest {
-  @NotNull(message = "Auth code cannot be blank") private final String code;
+  @NotNull(message = "Auth code cannot be blank")
+  private final String code;
 }

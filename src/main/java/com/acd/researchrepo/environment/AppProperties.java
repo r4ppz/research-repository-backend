@@ -42,7 +42,8 @@ public class AppProperties {
     @NotBlank(message = "APP_JWT_SECRET must be set and cannot be blank.")
     private final String secret;
 
-    @NotNull(message = "APP_JWT_ACCESS_TOKEN_EXPIRY must be set.") private final int accessTokenExpiry;
+    @NotNull(message = "APP_JWT_ACCESS_TOKEN_EXPIRY must be set.")
+    private final int accessTokenExpiry;
   }
 
   @Getter
