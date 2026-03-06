@@ -21,6 +21,7 @@ public class AppProperties {
   @Valid @NotNull private final Token token;
   @Valid @NotNull private final Cors cors;
   @Valid @NotNull private final Storage storage;
+  @NotBlank private final String privilegedUsersYamlPath;
 
   @Getter
   @RequiredArgsConstructor

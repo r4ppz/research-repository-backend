@@ -34,9 +34,5 @@ app:
     allowed-headers: "*"
     allow-credentials: true
 
-# Path for the privileged users file during tests
-fixed:
-  privileged:
-    users:
-      yaml:
-        path: "src/main/resources/privileged-users.yaml"
+  # Path for the privileged users file during tests
+  privileged-users-config-path: "src/main/resources/privileged-users.yaml"
