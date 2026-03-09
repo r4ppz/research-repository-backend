@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-// My brain hurts :(
+// This comment is only visible when you aren't looking at it.
 
 @SpringBootApplication
 @EnableJpaAuditing
