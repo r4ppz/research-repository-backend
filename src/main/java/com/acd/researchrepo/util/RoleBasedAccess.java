@@ -11,8 +11,8 @@ public final class RoleBasedAccess {
 
   private RoleBasedAccess() {}
 
-  public static boolean isUserStudentOrTeacher(CustomUserPrincipal user) {
-    return hasRole(user, UserRole.STUDENT, UserRole.TEACHER);
+  public static boolean isUserStudentOrFaculty(CustomUserPrincipal user) {
+    return hasRole(user, UserRole.STUDENT, UserRole.FACULTY);
   }
 
   public static boolean isUserAdmin(CustomUserPrincipal user) {
@@ -23,8 +23,8 @@ public final class RoleBasedAccess {
     return hasRole(user, UserRole.STUDENT);
   }
 
-  public static boolean isUserTeacher(CustomUserPrincipal user) {
-    return hasRole(user, UserRole.TEACHER);
+  public static boolean isUserFaculty(CustomUserPrincipal user) {
+    return hasRole(user, UserRole.FACULTY);
   }
 
   public static boolean isUserDepartmentAdmin(CustomUserPrincipal user) {

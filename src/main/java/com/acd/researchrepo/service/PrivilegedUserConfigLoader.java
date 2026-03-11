@@ -50,8 +50,8 @@ public class PrivilegedUserConfigLoader implements InitializingBean {
       emailSet.addAll(privilegedUserConfig.getSuperAdmins());
     }
 
-    if (privilegedUserConfig.getTeachers() != null) {
-      emailSet.addAll(privilegedUserConfig.getTeachers());
+    if (privilegedUserConfig.getFaculty() != null) {
+      emailSet.addAll(privilegedUserConfig.getFaculty());
     }
 
     if (privilegedUserConfig.getDepartmentAdmins() != null) {

@@ -15,7 +15,7 @@ public class PrivilegedUserConfig {
   @JsonProperty("super_admins")
   private List<String> superAdmins;
 
-  private List<String> teachers;
+  private List<String> faculty;
 
   @JsonProperty("department_admins")
   private List<DepartmentAdminEntry> departmentAdmins;

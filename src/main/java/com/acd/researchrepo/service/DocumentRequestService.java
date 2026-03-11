@@ -43,7 +43,7 @@ public class DocumentRequestService {
   public PaginatedResponse<UserDocumentRequestDto> getUserDocumentRequests(
       CustomUserPrincipal userPrincipal, DocumentRequestSearchRequest request) {
 
-    if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
+    if (!RoleBasedAccess.isUserStudentOrFaculty(userPrincipal)) {
       throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
     }
 
@@ -60,7 +60,7 @@ public class DocumentRequestService {
   @Transactional
   public CreateRequestResponse createRequest(
       CreateRequestRequest requestDto, CustomUserPrincipal userPrincipal) {
-    if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
+    if (!RoleBasedAccess.isUserStudentOrFaculty(userPrincipal)) {
       throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
     }
 
@@ -96,7 +96,7 @@ public class DocumentRequestService {
 
   @Transactional
   public void deleteRequest(Integer requestId, CustomUserPrincipal userPrincipal) {
-    if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
+    if (!RoleBasedAccess.isUserStudentOrFaculty(userPrincipal)) {
       throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
     }
 
@@ -122,7 +122,7 @@ public class DocumentRequestService {
 
   public PaperUserRequestResponse getUserRequestForPaper(
       Integer paperId, CustomUserPrincipal userPrincipal) {
-    if (!RoleBasedAccess.isUserStudentOrTeacher(userPrincipal)) {
+    if (!RoleBasedAccess.isUserStudentOrFaculty(userPrincipal)) {
       throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
     }
 
