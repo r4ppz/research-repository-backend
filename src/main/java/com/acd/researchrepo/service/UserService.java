@@ -65,8 +65,8 @@ public class UserService {
     if (config.getSuperAdmins() != null && config.getSuperAdmins().contains(email)) {
       return UserRole.SUPER_ADMIN;
     }
-    if (config.getTeachers() != null && config.getTeachers().contains(email)) {
-      return UserRole.TEACHER;
+    if (config.getFaculty() != null && config.getFaculty().contains(email)) {
+      return UserRole.FACULTY;
     }
     if (config.getDepartmentAdminsMap().containsKey(email)) {
       return UserRole.DEPARTMENT_ADMIN;

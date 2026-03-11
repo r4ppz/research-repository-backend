@@ -317,7 +317,7 @@ public class ResearchPaperService {
       return;
     }
 
-    // Student/Teacher
+    // Student/Faculty
     if (paper.getArchived()) {
       throw new ApiException(ErrorCode.RESOURCE_NOT_AVAILABLE, "Paper not available");
     }

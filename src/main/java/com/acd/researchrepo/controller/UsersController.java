@@ -46,7 +46,7 @@ public class UsersController {
       @Valid DocumentRequestSearchRequest request) {
     log.debug("api/users/me/requests endpoint hit");
 
-    if (!RoleBasedAccess.isUserStudentOrTeacher(principal)) {
+    if (!RoleBasedAccess.isUserStudentOrFaculty(principal)) {
       throw new ApiException(ErrorCode.ACCESS_DENIED, "Access denied");
     }
 

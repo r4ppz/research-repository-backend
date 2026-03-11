@@ -133,8 +133,8 @@ public class GoogleAuthService {
         && config.getSuperAdmins().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
       return true;
     }
-    if (config.getTeachers() != null
-        && config.getTeachers().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
+    if (config.getFaculty() != null
+        && config.getFaculty().stream().map(String::toLowerCase).anyMatch(normalized::equals)) {
       return true;
     }
     if (config.getDepartmentAdminsMap().containsKey(normalized)) {
