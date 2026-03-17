@@ -2,11 +2,12 @@ services:
   database:
     image: postgres:16
     container_name: db
-    restart: no
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Used only for testing purposes. Disable port on real prod!
     ports:
       - "5432:5432"
     volumes:
@@ -53,6 +54,18 @@ services:
       # Mount host file to container (HOST_PATH:CONTAINER_PATH)
       - ${PRIVILEGED_USERS_CONFIG_HOST_PATH}:/app/config/privileged-users.yaml
       - ${UPLOADS_HOST_PATH}:/app/uploads
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-tunnel
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel run
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
 volumes:
   pgdata:
