@@ -7,15 +7,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    # Used only for testing purposes. Disable port on real prod!
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
   backend:
-    build: .
-    image: research-repo-backend
+    image: ghcr.io/r4ppz/research-repository-backend:latest
     container_name: backend
     depends_on:
       - database
